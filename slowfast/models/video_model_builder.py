@@ -148,7 +148,8 @@ class FuseSlowAndFast(nn.Module):
 
     def __init__(
         self,
-        dim_in,
+        dim_fin,
+        dim_sin,
         fusion_conv_channel_ratio,
         fusion_kernel,
         alpha,
@@ -159,7 +160,8 @@ class FuseSlowAndFast(nn.Module):
     ):
         """
         Args:
-            dim_in (int): the channel dimension of the input.
+            dim_fin (int): the channel dimension of the fast input.
+            dim_sin (int): the channel dimension of the slow input
             fusion_conv_channel_ratio (int): channel ratio for the convolution
                 used to fuse from Fast pathway to Slow pathway.
             fusion_kernel (int): kernel size of the convolution used to fuse
@@ -175,28 +177,28 @@ class FuseSlowAndFast(nn.Module):
         """
         super(FuseSlowAndFast, self).__init__()
         self.conv_f2s = nn.Conv3d(
-            dim_in,
-            dim_in * fusion_conv_channel_ratio,
+            dim_fin,
+            dim_fin * fusion_conv_channel_ratio,
             kernel_size=[fusion_kernel, 1, 1],
             stride=[alpha, 1, 1],
             padding=[fusion_kernel // 2, 0, 0],
             bias=False,
         )
-        self.conv_s2f = nn.Conv3d(
-            dim_in,
-            dim_in * fusion_conv_channel_ratio,
+        self.conv_s2f = nn.ConvTranspose3d(
+            dim_sin,
+            dim_fin//(dim_sin//(dim_fin * fusion_conv_channel_ratio)),
             kernel_size=[fusion_kernel, 1, 1],
             stride=[alpha, 1, 1],
             padding=[fusion_kernel // 2, 0, 0],
             bias=False,
         )
         self.bn_s = norm_module(
-            num_features=dim_in * fusion_conv_channel_ratio,
+            num_features=dim_sin * fusion_conv_channel_ratio,
             eps=eps,
             momentum=bn_mmt,
         )
         self.bn_f = norm_module(
-            num_features=dim_in * fusion_conv_channel_ratio,
+            num_features=dim_fin * fusion_conv_channel_ratio,
             eps=eps,
             momentum=bn_mmt,
         )
@@ -281,6 +283,7 @@ class SlowFast2(nn.Module):
         )
         self.s1_fuse = FuseSlowAndFast(
             width_per_group // cfg.SLOWFAST.BETA_INV,
+            width_per_group,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -312,6 +315,7 @@ class SlowFast2(nn.Module):
         )
         self.s2_fuse = FuseSlowAndFast(
             width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
+            width_per_group * 4,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -351,6 +355,7 @@ class SlowFast2(nn.Module):
         )
         self.s3_fuse = FuseSlowAndFast(
             width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
+            width_per_group * 8,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -382,6 +387,7 @@ class SlowFast2(nn.Module):
         )
         self.s4_fuse = FuseSlowAndFast(
             width_per_group * 16 // cfg.SLOWFAST.BETA_INV,
+            width_per_group * 8,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
