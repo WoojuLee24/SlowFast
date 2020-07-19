@@ -39,6 +39,7 @@ class BasicTransform(nn.Module):
         inplace_relu=True,
         eps=1e-5,
         bn_mmt=0.1,
+        dilation=1,
         norm_module=nn.BatchNorm3d,
     ):
         """
@@ -66,9 +67,9 @@ class BasicTransform(nn.Module):
         self._inplace_relu = inplace_relu
         self._eps = eps
         self._bn_mmt = bn_mmt
-        self._construct(dim_in, dim_out, stride, norm_module)
+        self._construct(dim_in, dim_out, stride, dilation, norm_module)
 
-    def _construct(self, dim_in, dim_out, stride, norm_module):
+    def _construct(self, dim_in, dim_out, stride, dilation, norm_module):
         # Tx3x3, BN, ReLU.
         self.a = nn.Conv3d(
             dim_in,
