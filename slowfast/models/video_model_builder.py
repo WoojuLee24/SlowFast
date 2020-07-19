@@ -13,7 +13,7 @@ from . import head_helper, resnet_helper, stem_helper
 from .build import MODEL_REGISTRY
 
 # Number of blocks for different stages given the model depth.
-_MODEL_STAGE_DEPTH = {50: (3, 4, 6, 3), 101: (3, 4, 23, 3)}
+_MODEL_STAGE_DEPTH = {18: (2, 2, 2, 2), 34: (3, 4, 6, 3), 50: (3, 4, 6, 3), 101: (3, 4, 23, 3)}
 
 # Basis of temporal kernel sizes for each of the stage.
 _TEMPORAL_KERNEL_BASIS = {
@@ -148,8 +148,7 @@ class FuseSlowAndFast(nn.Module):
 
     def __init__(
         self,
-        dim_fin,
-        dim_sin,
+        dim_in,
         fusion_conv_channel_ratio,
         fusion_kernel,
         alpha,
@@ -160,8 +159,7 @@ class FuseSlowAndFast(nn.Module):
     ):
         """
         Args:
-            dim_fin (int): the channel dimension of the fast input.
-            dim_sin (int): the channel dimension of the slow input
+            dim_in (int): the channel dimension of the input.
             fusion_conv_channel_ratio (int): channel ratio for the convolution
                 used to fuse from Fast pathway to Slow pathway.
             fusion_kernel (int): kernel size of the convolution used to fuse
@@ -177,28 +175,28 @@ class FuseSlowAndFast(nn.Module):
         """
         super(FuseSlowAndFast, self).__init__()
         self.conv_f2s = nn.Conv3d(
-            dim_fin,
-            dim_fin * fusion_conv_channel_ratio,
+            dim_in,
+            dim_in * fusion_conv_channel_ratio,
             kernel_size=[fusion_kernel, 1, 1],
             stride=[alpha, 1, 1],
             padding=[fusion_kernel // 2, 0, 0],
             bias=False,
         )
-        self.conv_s2f = nn.ConvTranspose3d(
-            dim_sin,
-            dim_fin//(dim_sin//(dim_fin * fusion_conv_channel_ratio)),
+        self.conv_s2f = nn.Conv3d(
+            dim_in,
+            dim_in * fusion_conv_channel_ratio,
             kernel_size=[fusion_kernel, 1, 1],
             stride=[alpha, 1, 1],
             padding=[fusion_kernel // 2, 0, 0],
             bias=False,
         )
         self.bn_s = norm_module(
-            num_features=dim_sin * fusion_conv_channel_ratio,
+            num_features=dim_in * fusion_conv_channel_ratio,
             eps=eps,
             momentum=bn_mmt,
         )
         self.bn_f = norm_module(
-            num_features=dim_fin * fusion_conv_channel_ratio,
+            num_features=dim_in * fusion_conv_channel_ratio,
             eps=eps,
             momentum=bn_mmt,
         )
@@ -269,6 +267,7 @@ class SlowFast2(nn.Module):
         )
 
         temp_kernel = _TEMPORAL_KERNEL_BASIS[cfg.MODEL.ARCH]
+        print("temp_kernel", temp_kernel)
 
         self.s1 = stem_helper.VideoModelStem(
             dim_in=cfg.DATA.INPUT_CHANNEL_NUM,
@@ -283,7 +282,6 @@ class SlowFast2(nn.Module):
         )
         self.s1_fuse = FuseSlowAndFast(
             width_per_group // cfg.SLOWFAST.BETA_INV,
-            width_per_group,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -315,7 +313,6 @@ class SlowFast2(nn.Module):
         )
         self.s2_fuse = FuseSlowAndFast(
             width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
-            width_per_group * 4,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -355,7 +352,6 @@ class SlowFast2(nn.Module):
         )
         self.s3_fuse = FuseSlowAndFast(
             width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
-            width_per_group * 8,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,
@@ -387,7 +383,6 @@ class SlowFast2(nn.Module):
         )
         self.s4_fuse = FuseSlowAndFast(
             width_per_group * 16 // cfg.SLOWFAST.BETA_INV,
-            width_per_group * 8,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
             cfg.SLOWFAST.ALPHA,

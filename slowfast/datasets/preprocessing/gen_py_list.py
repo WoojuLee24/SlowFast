@@ -11,8 +11,8 @@ import shutil
 
 srclist = 'classids_.json'
 
-videodir = '/ws/data/miniKinetics400_slowfast_5/train_256/'
-outlist = 'train.txt'
+videodir = '/ws/data/val_256/'
+outlist = 'val.txt'
 
 # videodir = 'YOUR_DATASET_FOLDER/val/'
 # outlist = 'vallist.txt'
