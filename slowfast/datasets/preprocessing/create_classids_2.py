@@ -5,7 +5,7 @@ import shutil
 
 srclist = 'classids.json'
 
-videodir = '/ws/data/miniKinetics400_slowfast_5/train_256'
+videodir = '/ws/data/train_256'
 outlist = 'trainlist.txt'
 
 # videodir = 'YOUR_DATASET_FOLDER/val/'
@@ -30,5 +30,5 @@ for n, m in clss_ids.items():
     new_clss_ids[new_name] = m
 
 
-with open('classids_.json', 'w') as f:
+with open('classids_miniKinetics200.json', 'w') as f:
     json.dump(new_clss_ids, f)

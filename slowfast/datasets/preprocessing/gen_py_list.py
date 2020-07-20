@@ -9,17 +9,17 @@ import numpy as np
 import os
 import shutil
 
-srclist = 'classids_.json'
+srclist = 'classids_miniKinetics200.json'
 
-videodir = '/ws/data/val_256/'
-outlist = 'val.txt'
+videodir = '/ws/data/train_256/'
+outlist = 'train.txt'
 
 # videodir = 'YOUR_DATASET_FOLDER/val/'
 # outlist = 'vallist.txt'
 
 
 
-f = open(outlist, 'w')
+f = open("/ws/data/" + outlist, 'w')
 
 
 json_data = open(srclist).read()
