@@ -288,7 +288,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s2 = resnet_helper.ResStageDoG(
+        self.s2 = resnet_helper.ResStage2(
             dim_in=[
                 width_per_group + width_per_group // out_dim_ratio,
                 width_per_group // cfg.SLOWFAST.BETA_INV,
@@ -327,7 +327,7 @@ class SlowFast2(nn.Module):
             )
             self.add_module("pathway{}_pool".format(pathway), pool)
 
-        self.s3 = resnet_helper.ResStageDoG(
+        self.s3 = resnet_helper.ResStage2(
             dim_in=[
                 width_per_group * 4 + width_per_group * 4 // out_dim_ratio,
                 width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
@@ -358,7 +358,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s4 = resnet_helper.ResStageDoG(
+        self.s4 = resnet_helper.ResStage2(
             dim_in=[
                 width_per_group * 8 + width_per_group * 8 // out_dim_ratio,
                 width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
@@ -389,7 +389,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s5 = resnet_helper.ResStageDoG(
+        self.s5 = resnet_helper.ResStage2(
             dim_in=[
                 width_per_group * 16 + width_per_group * 16 // out_dim_ratio,
                 width_per_group * 16 // cfg.SLOWFAST.BETA_INV,

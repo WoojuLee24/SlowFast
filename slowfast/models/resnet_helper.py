@@ -256,25 +256,24 @@ class DoG(nn.Conv3d):
         self.out_channels = out_channels
         self.groups = groups
         self.padding = padding
-        self.mode = mode
-        if kernel_size == 5:
-            self.weight = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
+        self.relu = nn.ReLU()
+        self.weight = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
         self.weight.requires_grad = False
-        self.gau_weight = self.get_gaussian5x5(self.in_channels*2, self.in_channels*2, groups=2)
 
     def get_weight5x5(self, in_channels, out_channels, groups):
         # kernel 5x5
         kernel = torch.tensor([[-0.27, -0.23, -0.18, -0.23, -0.27], [-0.23, 0.17, 0.49, 0.17, -0.23],
                                  [-0.18, 0.49, 1, 0.49, -0.18], [-0.23, 0.17, 0.49, 0.17, -0.23],
                                  [-0.27, -0.23, -0.18, -0.23, -0.27]])
-        kernel = kernel.repeat(in_channels // groups, in_channels // groups, 8, 1, 1)
+        kernel = kernel.repeat(in_channels // groups, in_channels // groups, 1, 1, 1)
         kernel = kernel.to(dtype=torch.float)
         kernel = kernel.cuda()
         return nn.Parameter(kernel)
 
     def forward(self, x):
-        filters = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
-        return F.Conv3d(x, filters, padding=self.padding)
+        x = F.conv3d(x, self.weight, padding=self.padding)
+        x = self.relu(x)
+        return x
 
 
 
@@ -601,7 +600,7 @@ class ResStage(nn.Module):
         return output
 
 
-class ResStageDoG(nn.Module):
+class ResStage2(nn.Module):
     """
     Stage of 3D ResNet. It expects to have one or more tensors as input for
         single pathway (C2D, I3D, Slow), and multi-pathway (SlowFast) cases.
@@ -675,7 +674,7 @@ class ResStageDoG(nn.Module):
             norm_module (nn.Module): nn.Module for the normalization layer. The
                 default is nn.BatchNorm3d.
         """
-        super(ResStageDoG, self).__init__()
+        super(ResStage2, self).__init__()
         assert all(
             (
                 num_block_temp_kernel[i] <= num_blocks[i]
@@ -759,9 +758,9 @@ class ResStageDoG(nn.Module):
                 )
 
                 self.add_module("pathway{}_res{}".format(pathway, i), res_block)
-                if pathway == 1 and i == self.num_blocks[pathway]-1:
+                if pathway == 1:
                     ConvDoG = DoG(dim_out[pathway],
-                        dim_out[pathway], kernel_size=(5,5,5),
+                        dim_out[pathway], kernel_size=(1,5,5),
                         padding=(0,2,2), dilation=1, groups=1)
                     self.add_module("pathway{}_res{}_DoG".format(pathway, i), ConvDoG)
 
@@ -788,7 +787,7 @@ class ResStageDoG(nn.Module):
                 x = m(x)
                 if hasattr(self, "pathway{}_res{}_DoG".format(pathway, i)):
                     d = getattr(self, "pathway{}_res{}_DoG".format(pathway, i))
-                    x=d(x)
+                    x = d(x)
                 if hasattr(self, "pathway{}_nonlocal{}".format(pathway, i)):
                     nln = getattr(
                         self, "pathway{}_nonlocal{}".format(pathway, i)
