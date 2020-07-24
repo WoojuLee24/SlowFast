@@ -280,7 +280,7 @@ class SlowFast2(nn.Module):
             ],
             norm_module=self.norm_module,
         )
-        self.s1_fuse = FuseSlowAndFast(
+        self.s1_fuse = FuseFastToSlow(
             width_per_group // cfg.SLOWFAST.BETA_INV,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
@@ -288,7 +288,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s2 = resnet_helper.ResStage(
+        self.s2 = resnet_helper.ResStageDoG(
             dim_in=[
                 width_per_group + width_per_group // out_dim_ratio,
                 width_per_group // cfg.SLOWFAST.BETA_INV,
@@ -311,7 +311,7 @@ class SlowFast2(nn.Module):
             dilation=cfg.RESNET.SPATIAL_DILATIONS[0],
             norm_module=self.norm_module,
         )
-        self.s2_fuse = FuseSlowAndFast(
+        self.s2_fuse = FuseFastToSlow(
             width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
@@ -327,7 +327,7 @@ class SlowFast2(nn.Module):
             )
             self.add_module("pathway{}_pool".format(pathway), pool)
 
-        self.s3 = resnet_helper.ResStage(
+        self.s3 = resnet_helper.ResStageDoG(
             dim_in=[
                 width_per_group * 4 + width_per_group * 4 // out_dim_ratio,
                 width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
@@ -350,7 +350,7 @@ class SlowFast2(nn.Module):
             dilation=cfg.RESNET.SPATIAL_DILATIONS[1],
             norm_module=self.norm_module,
         )
-        self.s3_fuse = FuseSlowAndFast(
+        self.s3_fuse = FuseFastToSlow(
             width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
@@ -358,7 +358,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s4 = resnet_helper.ResStage(
+        self.s4 = resnet_helper.ResStageDoG(
             dim_in=[
                 width_per_group * 8 + width_per_group * 8 // out_dim_ratio,
                 width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
@@ -381,7 +381,7 @@ class SlowFast2(nn.Module):
             dilation=cfg.RESNET.SPATIAL_DILATIONS[2],
             norm_module=self.norm_module,
         )
-        self.s4_fuse = FuseSlowAndFast(
+        self.s4_fuse = FuseFastToSlow(
             width_per_group * 16 // cfg.SLOWFAST.BETA_INV,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_KERNEL_SZ,
@@ -389,7 +389,7 @@ class SlowFast2(nn.Module):
             norm_module=self.norm_module,
         )
 
-        self.s5 = resnet_helper.ResStage(
+        self.s5 = resnet_helper.ResStageDoG(
             dim_in=[
                 width_per_group * 16 + width_per_group * 16 // out_dim_ratio,
                 width_per_group * 16 // cfg.SLOWFAST.BETA_INV,
