@@ -758,7 +758,7 @@ class ResStage2(nn.Module):
                 )
 
                 self.add_module("pathway{}_res{}".format(pathway, i), res_block)
-                if pathway == 1:
+                if pathway == 1 and i == self.num_blocks[pathway]-1:
                     ConvDoG = DoG(dim_out[pathway],
                         dim_out[pathway], kernel_size=(1,5,5),
                         padding=(0,2,2), dilation=1, groups=1)
