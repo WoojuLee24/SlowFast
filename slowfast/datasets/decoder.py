@@ -332,7 +332,7 @@ def decode(
     except Exception as e:
         print("Failed to decode by {} with exception: {}".format(backend, e))
         with open("/ws/external/false_filelist.txt", "a") as f:
-             f.write(container.name+ "\n")
+             f.write(container.name+"\n")
         return None
 
     # Return None if the frames was not decoded successfully.
