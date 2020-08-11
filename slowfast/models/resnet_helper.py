@@ -257,7 +257,7 @@ class DoG(nn.Conv3d):
         self.groups = groups
         self.padding = padding
         self.relu = nn.ReLU()
-        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, bn_mnt=0.1)
+        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
         self.weight = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
         self.weight.requires_grad = False
 
