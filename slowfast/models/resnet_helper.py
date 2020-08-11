@@ -272,6 +272,7 @@ class DoG(nn.Conv3d):
 
     def forward(self, x):
         x = F.conv3d(x, self.weight, padding=self.padding)
+        x = nn.BatchNorm3d(x)
         x = self.relu(x)
         return x
 
