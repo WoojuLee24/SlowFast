@@ -269,7 +269,7 @@ class SlowFast2(nn.Module):
         temp_kernel = _TEMPORAL_KERNEL_BASIS[cfg.MODEL.ARCH]
         print("temp_kernel", temp_kernel)
 
-        self.s1 = stem_helper.VideoModelStem(
+        self.s1 = stem_helper.VideoModelStem2(
             dim_in=cfg.DATA.INPUT_CHANNEL_NUM,
             dim_out=[width_per_group, width_per_group // cfg.SLOWFAST.BETA_INV],
             kernel=[temp_kernel[0][0] + [7, 7], temp_kernel[0][1] + [7, 7]],
