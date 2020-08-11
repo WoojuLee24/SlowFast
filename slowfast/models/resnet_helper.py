@@ -257,7 +257,7 @@ class DoG(nn.Conv3d):
         self.groups = groups
         self.padding = padding
         self.relu = nn.ReLU()
-        self.bn = nn.BatchNorm3d()
+        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, bn_mnt=0.1)
         self.weight = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
         self.weight.requires_grad = False
 
@@ -765,7 +765,6 @@ class ResStage2(nn.Module):
                         dim_out[pathway], kernel_size=(1,5,5),
                         padding=(0,2,2), dilation=1, groups=1)
                     self.add_module("pathway{}_res{}_DoG".format(pathway, i), ConvDoG)
-
 
                 if i in nonlocal_inds[pathway]:
                     nln = Nonlocal(
