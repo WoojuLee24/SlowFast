@@ -257,6 +257,7 @@ class DoG(nn.Conv3d):
         self.groups = groups
         self.padding = padding
         self.relu = nn.ReLU()
+        self.bn = nn.BatchNorm3d()
         self.weight = self.get_weight5x5(self.in_channels, self.out_channels, self.groups)
         self.weight.requires_grad = False
 
@@ -272,7 +273,7 @@ class DoG(nn.Conv3d):
 
     def forward(self, x):
         x = F.conv3d(x, self.weight, padding=self.padding)
-        x = nn.BatchNorm3d(x)
+        x = self.bn(x)
         x = self.relu(x)
         return x
 
