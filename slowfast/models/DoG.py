@@ -35,3 +35,28 @@ class DoG(nn.Conv3d):
         x = self.bn(x)
         x = self.relu(x)
         return x
+
+class EndStopping(nn.Conv3d):
+
+    """
+    End-stopping kernel for solving aperture problem
+    Learnable paramter
+    """
+
+    def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+        super().__init__(in_channels, out_channels, kernel_size, stride=1, padding=padding, dilation=dilation, bias=bias)
+
+        self.in_channels=in_channels
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        self.groups = groups
+        self.padding = padding
+        self.relu = nn.ReLU()
+        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
+        # self.sig = torch.
+
+
+    def forward(self, x):
+        x = F.conv3d(x, self.weight, padding=self.padding)
+        x = self.bn(x)
+        x = self.relu(x)
