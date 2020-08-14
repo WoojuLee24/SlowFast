@@ -1,6 +1,7 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
+from fvcore.nn.weight_init import c2_msra_fill
 
 class DoG(nn.Conv3d):
 
@@ -40,23 +41,51 @@ class EndStopping(nn.Conv3d):
 
     """
     End-stopping kernel for solving aperture problem
-    Learnable paramter
+    Learnable parameter
     """
 
     def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
         super().__init__(in_channels, out_channels, kernel_size, stride=1, padding=padding, dilation=dilation, bias=bias)
 
-        self.in_channels=in_channels
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.groups = groups
         self.padding = padding
         self.relu = nn.ReLU()
         self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
-        # self.sig = torch.
+        self.slope_x = self.get_param(self.in_channels, self.out_channels, self.groups)
+        self.slope_y = self.get_param(self.in_channels, self.out_channels, self.groups)
+        self.center = self.get_param(self.in_channels, self.out_channels, self.groups)
+        self.weight = self.get_weight(self.slope_x, self.slope_y, self.center)
 
+    def get_param(self, in_channels, out_channels, groups):
+        param = torch.zeros([out_channels, in_channels//groups, 1, 1, 1], dtype=torch.float)
+        param = param.cuda()
+        nn.init.xavier_normal_(param, gain=nn.init.calculate_gain('sigmoid'))
+        return param
+
+    def get_weight(self, slope_x, slope_y, center):
+        one = torch.ones([self.out_channels, self.in_channels // self.groups, 1, 1, 1], dtype=torch.float).cuda()
+        bias = 1 / 2 * (torch.sigmoid(center) + one)
+        kernel_x = torch.cat([bias - 2 * 1 / 2 * (torch.sigmoid(slope_x) + one),
+                              bias - 1 / 2 * (torch.sigmoid(slope_x) + one),
+                              bias,
+                              bias - 1 / 2 * (torch.sigmoid(slope_x) + one),
+                              bias - 2 * 1 / 2 * (torch.sigmoid(slope_x) + one)], dim=3)
+        kernel_x = kernel_x.repeat((1, 1, 1, 1, 5))
+        kernel_y = torch.cat([bias - 2 * 1 / 2 * (torch.sigmoid(slope_y) + one),
+                              bias - 1 / 2 * (torch.sigmoid(slope_y) + one),
+                              bias,
+                              bias - 1 / 2 * (torch.sigmoid(slope_y) + one),
+                              bias - 2 * 1 / 2 * (torch.sigmoid(slope_y) + one)], dim=4)
+        kernel_y = kernel_y.repeat((1, 1, 1, 5, 1))
+        kernel = kernel_x + kernel_y
+        return nn.Parameter(kernel)
 
     def forward(self, x):
         x = F.conv3d(x, self.weight, padding=self.padding)
         x = self.bn(x)
         x = self.relu(x)
+        return x
+
+

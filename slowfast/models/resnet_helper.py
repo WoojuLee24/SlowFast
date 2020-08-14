@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 
 from slowfast.models.nonlocal_helper import Nonlocal
-from slowfast.models.DoG import DoG
+from slowfast.models.DoG import *
 
 
 def get_trans_func(name):
@@ -725,10 +725,14 @@ class ResStage2(nn.Module):
 
                 self.add_module("pathway{}_res{}".format(pathway, i), res_block)
                 if pathway == 1 and i == self.num_blocks[pathway]-1:
-                    ConvDoG = DoG(dim_out[pathway],
-                        dim_out[pathway], kernel_size=(1,5,5),
-                        padding=(0,2,2), dilation=1, groups=1)
-                    self.add_module("pathway{}_res{}_DoG".format(pathway, i), ConvDoG)
+                    # ConvDoG = DoG(dim_out[pathway],
+                    #     dim_out[pathway], kernel_size=(1,5,5),
+                    #     padding=(0,2,2), dilation=1, groups=1)
+                    # self.add_module("pathway{}_res{}_DoG".format(pathway, i), ConvDoG)
+                    ConvEnd = EndStopping(dim_out[pathway],
+                                          dim_out[pathway], kernel_size=(1, 5, 5),
+                                          padding=(0, 2, 2), dilation=1, groups=1)
+                    self.add_module("pathway{}_res{}_EndStopping".format(pathway, i), ConvEnd)
 
                 if i in nonlocal_inds[pathway]:
                     nln = Nonlocal(
@@ -752,6 +756,9 @@ class ResStage2(nn.Module):
                 x = m(x)
                 if hasattr(self, "pathway{}_res{}_DoG".format(pathway, i)):
                     d = getattr(self, "pathway{}_res{}_DoG".format(pathway, i))
+                    x = d(x)
+                if hasattr(self, "pathway{}_res{}_EndStopping".format(pathway, i)):
+                    d = getattr(self, "pathway{}_res{}_EndStopping".format(pathway, i))
                     x = d(x)
                 if hasattr(self, "pathway{}_nonlocal{}".format(pathway, i)):
                     nln = getattr(

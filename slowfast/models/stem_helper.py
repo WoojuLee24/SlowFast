@@ -4,7 +4,7 @@
 """ResNe(X)t 3D stem helper."""
 
 import torch.nn as nn
-from slowfast.models.DoG import DoG
+from slowfast.models.DoG import DoG, EndStopping
 
 
 class VideoModelStem(nn.Module):
@@ -183,11 +183,14 @@ class VideoModelStem2(nn.Module):
             )
             self.add_module("pathway{}_stem".format(pathway), stem)
             if pathway == 1:
-                ConvDoG = DoG(dim_out[pathway],
-                              dim_out[pathway], kernel_size=(1, 5, 5),
-                              padding=(0, 2, 2), dilation=1, groups=1)
-                self.add_module("pathway{}_stem_DoG".format(pathway), ConvDoG)
-
+                # ConvDoG = DoG(dim_out[pathway],
+                #               dim_out[pathway], kernel_size=(1, 5, 5),
+                #               padding=(0, 2, 2), dilation=1, groups=1)
+                # self.add_module("pathway{}_stem_DoG".format(pathway), ConvDoG)
+                ConvEnd = EndStopping(dim_out[pathway],
+                                      dim_out[pathway], kernel_size=(1, 5, 5),
+                                      padding=(0, 2, 2), dilation=1, groups=1)
+                self.add_module("pathway{}_res_EndStopping".format(pathway), ConvEnd)
 
     def forward(self, x):
         assert (
