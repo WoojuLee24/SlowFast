@@ -4,7 +4,7 @@
 """ResNe(X)t 3D stem helper."""
 
 import torch.nn as nn
-from slowfast.models.DoG import DoG, EndStopping
+from slowfast.models.DoG import *
 
 
 class VideoModelStem(nn.Module):
@@ -193,7 +193,7 @@ class VideoModelStem2(nn.Module):
                 Compare = CompareDoG(dim_out[pathway],
                                      dim_out[pathway], kernel_size=(1, 5, 5),
                                      padding=(0, 2, 2), dilation=1, groups=1)
-                self.add_module("pathway{}_res_EndStopping".format(pathway), Compare)
+                self.add_module("pathway{}_res_Compare".format(pathway), Compare)
 
     def forward(self, x):
         assert (
