@@ -758,11 +758,14 @@ class ResStage2(nn.Module):
             for i in range(self.num_blocks[pathway]):
                 m = getattr(self, "pathway{}_res{}".format(pathway, i))
                 x = m(x)
-                if hasattr(self, "pathway{}_res{}_DoG".format(pathway, i)):
-                    d = getattr(self, "pathway{}_res{}_DoG".format(pathway, i))
-                    x = d(x)
-                if hasattr(self, "pathway{}_res{}_EndStopping".format(pathway, i)):
-                    d = getattr(self, "pathway{}_res{}_EndStopping".format(pathway, i))
+                # if hasattr(self, "pathway{}_res{}_DoG".format(pathway, i)):
+                #     d = getattr(self, "pathway{}_res{}_DoG".format(pathway, i))
+                #     x = d(x)
+                # if hasattr(self, "pathway{}_res{}_EndStopping".format(pathway, i)):
+                #     d = getattr(self, "pathway{}_res{}_EndStopping".format(pathway, i))
+                #     x = d(x)
+                if hasattr(self, "pathway{}_res{}_Compare".format(pathway, i)):
+                    d = getattr(self, "pathway{}_res{}_Compare".format(pathway, i))
                     x = d(x)
                 if hasattr(self, "pathway{}_nonlocal{}".format(pathway, i)):
                     nln = getattr(

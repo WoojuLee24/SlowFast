@@ -190,10 +190,11 @@ class VideoModelStem2(nn.Module):
                 # ConvEnd = EndStopping(dim_out[pathway],
                 #                       dim_out[pathway], kernel_size=(1, 5, 5),
                 #                       padding=(0, 2, 2), dilation=1, groups=1)
+                # self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
                 Compare = CompareDoG(dim_out[pathway],
                                      dim_out[pathway], kernel_size=(1, 5, 5),
                                      padding=(0, 2, 2), dilation=1, groups=1)
-                self.add_module("pathway{}_res_Compare".format(pathway), Compare)
+                self.add_module("pathway{}_stem_Compare".format(pathway), Compare)
 
     def forward(self, x):
         assert (
@@ -202,6 +203,15 @@ class VideoModelStem2(nn.Module):
         for pathway in range(len(x)):
             m = getattr(self, "pathway{}_stem".format(pathway))
             x[pathway] = m(x[pathway])
+            # if hasattr(self, "pathway{}_stem{}_DoG".format(pathway, i)):
+            #     d = getattr(self, "pathway{}_stem{}_DoG".format(pathway, i))
+            #     x = d(x)
+            # if hasattr(self, "pathway{}_stem{}_EndStopping".format(pathway, i)):
+            #     d = getattr(self, "pathway{}_stem{}_EndStopping".format(pathway, i))
+            #     x = d(x)
+            # if hasattr(self, "pathway{}_stem_Compare".format(pathway)):
+            #     d = getattr(self, "pathway{}_stem_Compare".format(pathway))
+            #     x = d(x)
         return x
 
 class ResNetBasicStem(nn.Module):
