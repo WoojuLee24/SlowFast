@@ -4,6 +4,8 @@
 """Utility function for weight initialization"""
 
 import torch.nn as nn
+from slowfast.models.DoG import DoG, EndStopping
+
 from fvcore.nn.weight_init import c2_msra_fill
 
 
@@ -24,6 +26,8 @@ def init_weights(model, fc_init_std=0.01, zero_init_final_bn=True):
             performance on imagenet classification."
             arXiv preprint arXiv:1502.01852 (2015)}
             """
+            if isinstance(m, DoG) or isinstance(m, EndStopping):
+                continue
             c2_msra_fill(m)
         elif isinstance(m, nn.BatchNorm3d):
             if (
