@@ -18,13 +18,7 @@ outlist = 'train.txt'
 # outlist = 'vallist.txt'
 
 
-
-<<<<<<< HEAD
-f = open(outlist, 'w')
-=======
 f = open("/ws/data/" + outlist, 'w')
->>>>>>> endstop
-
 
 json_data = open(srclist).read()
 clss_ids = json.loads(json_data)

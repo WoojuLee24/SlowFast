@@ -6,7 +6,11 @@ import shutil
 srclist = 'classids.json'
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 videodir = '/ws/data/miniKinetics400_slowfast_5/train_256'
+=======
+videodir = '/ws/data/train_256'
+>>>>>>> endstop
 =======
 videodir = '/ws/data/train_256'
 >>>>>>> endstop
@@ -32,6 +36,7 @@ for n, m in clss_ids.items():
     #         new_name = new_name + '_'
     print(new_name)
     new_clss_ids[new_name] = m
+
 
 with open('classids_miniKinetics200.json', 'w') as f:
     json.dump(new_clss_ids, f)
