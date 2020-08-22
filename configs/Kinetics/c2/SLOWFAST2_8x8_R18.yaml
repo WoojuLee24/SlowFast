@@ -66,11 +66,10 @@ TENSORBOARD:
   ENABLE: True
   MODEL_VIS:
     ENABLE: True
-    MODEL_WEIGHTS: # Set to True to visualize model weights.
-    ACTIVATIONS: # Set to True to visualize feature maps.
-    INPUT_VIDEO: # Set to True to visualize the input video(s) for the corresponding feature maps.
-    LAYER_LIST: # List of layer names to visualize weights and activations for.
+    MODEL_WEIGHTS: False
+    ACTIVATIONS: False
+    INPUT_VIDEO: False
+    LAYER_LIST: []
     GRAD_CAM:
       ENABLE: True
-      LAYER_LIST: # List of CNN layers to use for Grad-CAM visualization method.
-      # The number of layer must be equal to the number of pathway(s).
+      LAYER_LIST: []
