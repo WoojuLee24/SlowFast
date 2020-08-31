@@ -153,7 +153,6 @@ class EndStopping2(nn.Conv3d):
         self.kernel_size = kernel_size
         self.groups = groups
         self.padding = padding
-        self.surround_pad = nn.ConstantPad3d([1, 1, 1, 1, 0, 0], 0.0)
         self.relu = nn.ReLU()
         self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
         self.param = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
@@ -171,9 +170,9 @@ class EndStopping2(nn.Conv3d):
         center: relu(x)
         surround: - relu(-x)
         """
-        center = self.surround_pad(param[:, :, :, 1:4, 1:4])
+        center = F.pad(param[:, :, :, 1:4, 1:4], (1, 1, 1, 1))
         surround = param - center
-        weight = self.relu(center)-self.relu(surround)
+        weight = F.relu(center) - F.relu(surround)
         return weight
 
     def get_weight2(self, param):
@@ -182,9 +181,9 @@ class EndStopping2(nn.Conv3d):
         center: relu(x) + relu(-x)
         surround: - relu(x) - relu(-x)
         """
-        center = self.surround_pad(param[:, :, :, 1:4, 1:4])
+        center = F.pad(param[:, :, :, 1:4, 1:4], (1, 1, 1, 1))
         surround = param - center
-        weight = self.relu(center) + self.relu(-center) - self.relu(surround) - self.relu(-surround)
+        weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
         return weight
 
     def forward(self, x):
