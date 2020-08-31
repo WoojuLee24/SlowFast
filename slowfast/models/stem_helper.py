@@ -187,14 +187,18 @@ class VideoModelStem2(nn.Module):
                 #               dim_out[pathway], kernel_size=(1, 5, 5),
                 #               padding=(0, 2, 2), dilation=1, groups=1)
                 # self.add_module("pathway{}_stem_DoG".format(pathway), ConvDoG)
-                # ConvEnd = EndStopping(dim_out[pathway],
+                ConvEnd = EndStopping(dim_out[pathway],
+                                      dim_out[pathway], kernel_size=(1, 5, 5),
+                                      padding=(0, 2, 2), dilation=1, groups=1)
+                self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
+                # Compare = CompareDoG(dim_out[pathway],
+                #                      dim_out[pathway], kernel_size=(1, 5, 5),
+                #                      padding=(0, 2, 2), dilation=1, groups=1)
+                # self.add_module("pathway{}_stem_Compare".format(pathway), Compare)
+                # ConvEnd = EndStopping2(dim_out[pathway],
                 #                       dim_out[pathway], kernel_size=(1, 5, 5),
                 #                       padding=(0, 2, 2), dilation=1, groups=1)
                 # self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
-                Compare = CompareDoG(dim_out[pathway],
-                                     dim_out[pathway], kernel_size=(1, 5, 5),
-                                     padding=(0, 2, 2), dilation=1, groups=1)
-                self.add_module("pathway{}_stem_Compare".format(pathway), Compare)
 
     def forward(self, x):
         assert (
