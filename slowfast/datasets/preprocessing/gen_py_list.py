@@ -9,10 +9,10 @@ import numpy as np
 import os
 import shutil
 
-srclist = 'classids_miniKinetics200.json'
+srclist = 'classids_miniKinetics200_s128_real.json'
 
-videodir = '/ws/data/train_256/'
-outlist = 'train.txt'
+videodir = '/ws/data/val_128/'
+outlist = 'val.txt'
 
 # videodir = 'YOUR_DATASET_FOLDER/val/'
 # outlist = 'vallist.txt'
