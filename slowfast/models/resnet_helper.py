@@ -729,18 +729,18 @@ class ResStage2(nn.Module):
                     #     dim_out[pathway], kernel_size=(1,5,5),
                     #     padding=(0,2,2), dilation=1, groups=1)
                     # self.add_module("pathway{}_res{}_DoG".format(pathway, i), ConvDoG)
-                    ConvEnd = EndStopping(dim_out[pathway],
-                                          dim_out[pathway], kernel_size=(1, 5, 5),
-                                          padding=(0, 2, 2), dilation=1, groups=1)
-                    self.add_module("pathway{}_res{}_EndStopping".format(pathway, i), ConvEnd)
+                    # ConvEnd = EndStopping(dim_out[pathway],
+                    #                       dim_out[pathway], kernel_size=(1, 5, 5),
+                    #                       padding=(0, 2, 2), dilation=1, groups=1)
+                    # self.add_module("pathway{}_res{}_EndStopping".format(pathway, i), ConvEnd)
                     # Compare = CompareDoG(dim_out[pathway],
                     #               dim_out[pathway], kernel_size=(1, 5, 5),
                     #               padding=(0, 2, 2), dilation=1, groups=1)
                     # self.add_module("pathway{}_res{}_Compare".format(pathway, i), Compare)
-                    # ConvEnd = EndStopping2(dim_out[pathway],
-                    #                       dim_out[pathway], kernel_size=(1, 5, 5),
-                    #                       padding=(0, 2, 2), dilation=1, groups=1)
-                    # self.add_module("pathway{}_res{}_EndStopping2".format(pathway, i), ConvEnd)
+                    ConvEnd = EndStopping2(dim_out[pathway],
+                                          dim_out[pathway], kernel_size=(1, 5, 5),
+                                          padding=(0, 2, 2), dilation=1, groups=1)
+                    self.add_module("pathway{}_res{}_EndStopping2".format(pathway, i), ConvEnd)
 
 
                 if i in nonlocal_inds[pathway]:
@@ -766,15 +766,15 @@ class ResStage2(nn.Module):
                 # if hasattr(self, "pathway{}_res{}_DoG".format(pathway, i)):
                 #     d = getattr(self, "pathway{}_res{}_DoG".format(pathway, i))
                 #     x = d(x)
-                if hasattr(self, "pathway{}_res{}_EndStopping".format(pathway, i)):
-                    d = getattr(self, "pathway{}_res{}_EndStopping".format(pathway, i))
-                    x = d(x)
+                # if hasattr(self, "pathway{}_res{}_EndStopping".format(pathway, i)):
+                #     d = getattr(self, "pathway{}_res{}_EndStopping".format(pathway, i))
+                #     x = d(x)
                 # if hasattr(self, "pathway{}_res{}_Compare".format(pathway, i)):
                 #     d = getattr(self, "pathway{}_res{}_Compare".format(pathway, i))
                 #     x = d(x)
-                # if hasattr(self, "pathway{}_res{}_EndStopping2".format(pathway, i)):
-                #     d = getattr(self, "pathway{}_res{}_EndStopping2".format(pathway, i))
-                #     x = d(x)
+                if hasattr(self, "pathway{}_res{}_EndStopping2".format(pathway, i)):
+                    d = getattr(self, "pathway{}_res{}_EndStopping2".format(pathway, i))
+                    x = d(x)
                 if hasattr(self, "pathway{}_nonlocal{}".format(pathway, i)):
                     nln = getattr(
                         self, "pathway{}_nonlocal{}".format(pathway, i)
