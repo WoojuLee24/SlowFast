@@ -18,7 +18,7 @@ def main():
     args = parse_args()
     cfg = load_config(args)
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1, 2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu_devices
 
     # Perform training.
     if cfg.TRAIN.ENABLE:

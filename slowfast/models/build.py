@@ -34,7 +34,6 @@ def build_model(cfg, gpu_id=None):
 
     # Construct the model
     name = cfg.MODEL.MODEL_NAME
-    k=MODEL_REGISTRY
     model = MODEL_REGISTRY.get(name)(cfg)
 
     if cfg.NUM_GPUS:
