@@ -342,6 +342,9 @@ _C.SOLVER.OPTIMIZING_METHOD = "sgd"
 # Number of GPUs to use (applies to both training and testing).
 _C.NUM_GPUS = 1
 
+# Which GPU devices to use (applies to both training and testing).
+_C.GPU_DEVICES = "0"
+
 # Number of machine to use for the job.
 _C.NUM_SHARDS = 1
 
