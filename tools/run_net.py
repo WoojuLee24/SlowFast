@@ -9,7 +9,7 @@ from demo_net import demo
 from test_net import test
 from train_net import train
 from visualization import visualize
-
+import os
 
 def main():
     """
@@ -17,6 +17,8 @@ def main():
     """
     args = parse_args()
     cfg = load_config(args)
+    os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
+    os.environ["CUDA_VISIBLE_DEVICES"] = cfg.GPU_DEVICES
 
     # Perform training.
     if cfg.TRAIN.ENABLE:
