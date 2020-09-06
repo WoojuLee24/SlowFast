@@ -590,6 +590,7 @@ class ResStage2(nn.Module):
             nonlocal_inds,
             nonlocal_group,
             nonlocal_pool,
+            endstop_inds,
             dilation,
             instantiation="softmax",
             trans_func_name="bottleneck_transform",
@@ -667,6 +668,7 @@ class ResStage2(nn.Module):
                         len(num_block_temp_kernel),
                         len(nonlocal_inds),
                         len(nonlocal_group),
+                        len(endstop_inds),
                     }
                 )
                 == 1
@@ -684,6 +686,7 @@ class ResStage2(nn.Module):
             nonlocal_inds,
             nonlocal_pool,
             instantiation,
+            endstop_inds,
             dilation,
             norm_module,
         )
@@ -701,6 +704,7 @@ class ResStage2(nn.Module):
             nonlocal_inds,
             nonlocal_pool,
             instantiation,
+            endstop_inds,
             dilation,
             norm_module,
     ):
@@ -724,7 +728,8 @@ class ResStage2(nn.Module):
                 )
 
                 self.add_module("pathway{}_res{}".format(pathway, i), res_block)
-                if pathway == 1 and i == self.num_blocks[pathway]-1:
+                # if pathway == 1 and i == self.num_blocks[pathway]-1:
+                if i in endstop_inds[pathway]:
                     # ConvDoG = DoG(dim_out[pathway],
                     #     dim_out[pathway], kernel_size=(1,5,5),
                     #     padding=(0,2,2), dilation=1, groups=1)

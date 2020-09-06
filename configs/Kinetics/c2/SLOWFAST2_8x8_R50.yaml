@@ -33,6 +33,8 @@ NONLOCAL:
   LOCATION: [[[], []], [[], []], [[], []], [[], []]]
   GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
   INSTANTIATION: dot_product
+ENDSTOP:
+  LOCATION: [[[], [0, 1, 2]], [[], [0, 1, 2, 3]], [[], [0, 1, 2, 3, 4, 5]], [[], [0, 1, 2]]]
 BN:
   USE_PRECISE_STATS: True
   NUM_BATCHES_PRECISE: 200
