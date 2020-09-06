@@ -8,7 +8,7 @@ import torch
 import torch.nn.functional as F
 
 from slowfast.models.nonlocal_helper import Nonlocal
-from slowfast.models.DoG import *
+from slowfast.models.endstop_helper import *
 
 
 def get_trans_func(name):
@@ -591,6 +591,7 @@ class ResStage2(nn.Module):
             nonlocal_group,
             nonlocal_pool,
             endstop_inds,
+            endstop_func_name,
             dilation,
             instantiation="softmax",
             trans_func_name="bottleneck_transform",
@@ -687,6 +688,7 @@ class ResStage2(nn.Module):
             nonlocal_pool,
             instantiation,
             endstop_inds,
+            endstop_func_name,
             dilation,
             norm_module,
         )
@@ -705,6 +707,7 @@ class ResStage2(nn.Module):
             nonlocal_pool,
             instantiation,
             endstop_inds,
+            endstop_func_name,
             dilation,
             norm_module,
     ):
@@ -730,6 +733,8 @@ class ResStage2(nn.Module):
                 self.add_module("pathway{}_res{}".format(pathway, i), res_block)
                 # if pathway == 1 and i == self.num_blocks[pathway]-1:
                 if i in endstop_inds[pathway]:
+                    EndStop = get_endstop_function(endstop_func_name, dim_out[pathway], dim_out[pathway])
+                    self.add_module("pathway{}_res{}_EndStop".format(pathway, i), EndStop)
                     # ConvDoG = DoG(dim_out[pathway],
                     #     dim_out[pathway], kernel_size=(1,5,5),
                     #     padding=(0,2,2), dilation=1, groups=1)
@@ -738,10 +743,10 @@ class ResStage2(nn.Module):
                     #                       dim_out[pathway], kernel_size=(1, 5, 5),
                     #                       padding=(0, 2, 2), dilation=1, groups=1)
                     # self.add_module("pathway{}_res{}_EndStopping".format(pathway, i), ConvEnd)
-                    Compare = CompareDoG(dim_out[pathway],
-                                  dim_out[pathway], kernel_size=(1, 5, 5),
-                                  padding=(0, 2, 2), dilation=1, groups=1)
-                    self.add_module("pathway{}_res{}_Compare".format(pathway, i), Compare)
+                    # Compare = CompareDoG(dim_out[pathway],
+                    #               dim_out[pathway], kernel_size=(1, 5, 5),
+                    #               padding=(0, 2, 2), dilation=1, groups=1)
+                    # self.add_module("pathway{}_res{}_Compare".format(pathway, i), Compare)
                     # ConvEnd = EndStopping2(dim_out[pathway],
                     #                       dim_out[pathway], kernel_size=(1, 5, 5),
                     #                       padding=(0, 2, 2), dilation=1, groups=1)

@@ -4,7 +4,7 @@
 """ResNe(X)t 3D stem helper."""
 
 import torch.nn as nn
-from slowfast.models.DoG import *
+from slowfast.models.endstop_helper import *
 
 
 class VideoModelStem(nn.Module):

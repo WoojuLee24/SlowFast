@@ -4,7 +4,7 @@
 """Utility function for weight initialization"""
 
 import torch.nn as nn
-from slowfast.models.DoG import *
+from slowfast.models.endstop_helper import *
 
 from fvcore.nn.weight_init import c2_msra_fill
 

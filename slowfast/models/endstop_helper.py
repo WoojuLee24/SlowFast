@@ -1,8 +1,26 @@
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-from torch.autograd import Function
-from fvcore.nn.weight_init import c2_msra_fill
+
+def get_endstop_function(name, dim_in, dim_out):
+    """
+    Retrives the Endstopping layer by name
+    """
+    endstop_funcs = {
+        "EndStopping1": EndStopping(dim_in, dim_out,
+                                kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
+        "EndStopping2": EndStopping2(dim_in, dim_out,
+                                 kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
+        "DoG": DoG(dim_in, dim_out,
+                   kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
+        "CompareDog": CompareDoG(dim_in, dim_out,
+                                  kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
+    }
+    assert (
+        name in endstop_funcs.keys()
+    ), "EndStopping function '{}' not supported".format(name)
+    return endstop_funcs[name]
+
 
 class DoG(nn.Conv3d):
 

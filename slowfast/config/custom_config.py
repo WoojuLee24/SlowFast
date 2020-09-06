@@ -11,4 +11,5 @@ def add_custom_config(_C):
     # Index of each stage and block to add endstopping layers.
     _C.ENDSTOP = CfgNode()
     _C.ENDSTOP.LOCATION = [[[]], [[]], [[]], [[]]]
+    _C.ENDSTOP.TYPE = "EndStopping1"
     pass
