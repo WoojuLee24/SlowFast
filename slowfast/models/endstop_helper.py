@@ -207,7 +207,10 @@ class EndStopping2(nn.Conv3d):
 
     def forward(self, x):
         weight = self.get_weight2(self.param)
-        x = F.conv3d(x, weight, padding=self.padding)
+        x = F.conv3d(x, weight, padding=self.padding, groups=self.groups)
         x = self.bn(x)
         x = self.relu(x)
         return x
+
+
+
