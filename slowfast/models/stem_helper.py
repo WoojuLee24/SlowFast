@@ -182,23 +182,23 @@ class VideoModelStem2(nn.Module):
                 norm_module,
             )
             self.add_module("pathway{}_stem".format(pathway), stem)
-            if pathway == 1:
-                # ConvDoG = DoG(dim_out[pathway],
-                #               dim_out[pathway], kernel_size=(1, 5, 5),
-                #               padding=(0, 2, 2), dilation=1, groups=1)
-                # self.add_module("pathway{}_stem_DoG".format(pathway), ConvDoG)
-                ConvEnd = EndStopping(dim_out[pathway],
-                                      dim_out[pathway], kernel_size=(1, 5, 5),
-                                      padding=(0, 2, 2), dilation=1, groups=1)
-                self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
-                # Compare = CompareDoG(dim_out[pathway],
-                #                      dim_out[pathway], kernel_size=(1, 5, 5),
-                #                      padding=(0, 2, 2), dilation=1, groups=1)
-                # self.add_module("pathway{}_stem_Compare".format(pathway), Compare)
-                # ConvEnd = EndStopping2(dim_out[pathway],
-                #                       dim_out[pathway], kernel_size=(1, 5, 5),
-                #                       padding=(0, 2, 2), dilation=1, groups=1)
-                # self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
+            # if pathway == 1:
+            # ConvDoG = DoG(dim_out[pathway],
+            #               dim_out[pathway], kernel_size=(1, 5, 5),
+            #               padding=(0, 2, 2), dilation=1, groups=1)
+            # self.add_module("pathway{}_stem_DoG".format(pathway), ConvDoG)
+            # ConvEnd = EndStopping(dim_out[pathway],
+            #                       dim_out[pathway], kernel_size=(1, 5, 5),
+            #                       padding=(0, 2, 2), dilation=1, groups=1)
+            # self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
+            # Compare = CompareDoG(dim_out[pathway],
+            #                      dim_out[pathway], kernel_size=(1, 5, 5),
+            #                      padding=(0, 2, 2), dilation=1, groups=1)
+            # self.add_module("pathway{}_stem_Compare".format(pathway), Compare)
+            # ConvEnd = EndStopping2(dim_out[pathway],
+            #                       dim_out[pathway], kernel_size=(1, 5, 5),
+            #                       padding=(0, 2, 2), dilation=1, groups=1)
+            # self.add_module("pathway{}_stem_Endstop".format(pathway), ConvEnd)
 
     def forward(self, x):
         assert (

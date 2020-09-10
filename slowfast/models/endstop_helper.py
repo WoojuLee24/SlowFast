@@ -209,8 +209,19 @@ class EndStopping2(nn.Conv3d):
         weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
         return weight
 
+    def get_weight3(self, param):
+        """
+        version 2
+        center: relu(x) + relu(-x)
+        surround: - relu(x) - relu(-x)
+        """
+        center = F.pad(param[:, :, :, 1:2, 1:2], (1, 1, 1, 1))
+        surround = param - center
+        weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
+        return weight
+
     def forward(self, x):
-        weight = self.get_weight2(self.param)
+        weight = self.get_weight3(self.param)
         x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
         x = self.bn(x)
         x = self.relu(x)
