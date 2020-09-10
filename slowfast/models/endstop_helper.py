@@ -2,19 +2,20 @@ import torch.nn as nn
 import torch
 import torch.nn.functional as F
 
-def get_endstop_function(name, dim_in, dim_out):
+def get_endstop_function(name, dim_in, dim_out, kernel_size=[1, 5, 5], stride=[1, 1, 1],
+                         padding=[0, 2, 2], dilation=[1, 1, 1], groups=1):
     """
     Retrives the Endstopping layer by name
     """
     endstop_funcs = {
-        "EndStopping1": EndStopping(dim_in, dim_out,
-                                kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
-        "EndStopping2": EndStopping2(dim_in, dim_out,
-                                 kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
-        "DoG": DoG(dim_in, dim_out,
-                   kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
-        "CompareDog": CompareDoG(dim_in, dim_out,
-                                  kernel_size=(1, 5, 5), padding=(0, 2, 2), dilation=1, groups=1),
+        "EndStopping1": EndStopping(dim_in, dim_out, kernel_size=kernel_size,
+                                    stride=stride, padding=padding, dilation=dilation, groups=groups),
+        "EndStopping2": EndStopping2(dim_in, dim_out, kernel_size=kernel_size,
+                                     stride=stride, padding=padding, dilation=dilation, groups=groups),
+        "DoG": DoG(dim_in, dim_out, kernel_size=kernel_size,
+                   stride=stride, padding=padding, dilation=dilation, groups=groups),
+        "CompareDog": CompareDoG(dim_in, dim_out, kernel_size=kernel_size,
+                                 stride=stride, padding=padding, dilation=dilation, groups=groups),
     }
     assert (
         name in endstop_funcs.keys()
@@ -28,8 +29,8 @@ class DoG(nn.Conv3d):
     Fixed Difference of Gaussian
     """
 
-    def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
-        super().__init__(in_channels, out_channels, kernel_size, stride=1, padding=padding, dilation=dilation, bias=bias)
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+        super().__init__(in_channels, out_channels, kernel_size, stride, padding=padding, dilation=dilation, bias=bias)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -66,11 +67,12 @@ class EndStopping(nn.Module):
     Learnable parameter of pseudo-Difference of Gaussian Kernel
     """
 
-    def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
         super(EndStopping, self).__init__()
 
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.stride=stride
         self.groups = groups
         self.padding = padding
         self.relu = nn.ReLU()
@@ -129,21 +131,22 @@ class EndStopping(nn.Module):
 
     def forward(self, x):
         kernel = self.get_weight(self.slope_x, self.slope_y, self.center, self.one, self.zero)
-        x = F.conv3d(x, kernel, stride=1, padding=self.padding)
+        x = F.conv3d(x, kernel, stride=self.stride, padding=self.padding)
         x = self.bn(x)
         x = self.relu(x)
         return x
 
 class CompareDoG(nn.Conv3d):
-    def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
-        super().__init__(in_channels, out_channels, kernel_size, stride=1, padding=padding, dilation=dilation,
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation,
                          bias=bias)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
+        self.stride=stride
         self.groups = groups
         self.padding = padding
-        self.conv3d = nn.Conv3d(in_channels, out_channels, kernel_size=(1, 5, 5), stride=1, padding=(0, 2, 2))
+        self.conv3d = nn.Conv3d(in_channels, out_channels, kernel_size=(1, 5, 5), stride=self.stride, padding=(0, 2, 2))
         self.relu = nn.ReLU()
         self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
 
@@ -163,14 +166,15 @@ class EndStopping2(nn.Conv3d):
     Using relu function to learn center-surround suppression
     """
 
-    def __init__(self, in_channels, out_channels, kernel_size, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
-        super().__init__(in_channels, out_channels, kernel_size, stride=1, padding=padding, dilation=dilation, bias=bias)
+    def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+        super().__init__(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias)
 
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.kernel_size = kernel_size
-        # self.groups = groups
-        self.groups = in_channels
+        self.stride = stride
+        self.groups = groups
+        # self.groups = in_channels
         self.padding = padding
         self.relu = nn.ReLU()
         self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
@@ -207,7 +211,7 @@ class EndStopping2(nn.Conv3d):
 
     def forward(self, x):
         weight = self.get_weight2(self.param)
-        x = F.conv3d(x, weight, padding=self.padding, groups=self.groups)
+        x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
         x = self.bn(x)
         x = self.relu(x)
         return x
