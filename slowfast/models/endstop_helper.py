@@ -75,8 +75,8 @@ class EndStopping(nn.Module):
         self.stride=stride
         self.groups = groups
         self.padding = padding
-        self.relu = nn.ReLU()
-        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
+        # self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
+        # self.relu = nn.ReLU()
         self.slope_x = self.get_param(self.in_channels, self.out_channels, self.groups)
         self.slope_y = self.get_param(self.in_channels, self.out_channels, self.groups)
         self.center = self.get_param(self.in_channels, self.out_channels, self.groups)
@@ -176,8 +176,8 @@ class EndStopping2(nn.Conv3d):
         self.groups = groups
         # self.groups = in_channels
         self.padding = padding
-        self.relu = nn.ReLU()
-        self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
+        # self.relu = nn.ReLU()
+        # self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
         self.param = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
 
 
@@ -223,9 +223,8 @@ class EndStopping2(nn.Conv3d):
     def forward(self, x):
         weight = self.get_weight3(self.param)
         x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
-        x = self.bn(x)
-        x = self.relu(x)
+        # x = self.bn(x)
+        # x = self.relu(x)
         return x
-
 
 
