@@ -34,7 +34,7 @@ NONLOCAL:
   GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
   INSTANTIATION: dot_product
 ENDSTOP:
-  LOCATION: [[[], [2]], [[], [3]], [[], [5]], [[], [2]]]
+  LOCATION: [[[2], [2]], [[3], [3]], [[5], [5]], [[2], [2]]]
   TYPE: ""
 BN:
   USE_PRECISE_STATS: True

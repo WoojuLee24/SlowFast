@@ -172,8 +172,8 @@ class EndStopping2(nn.Conv3d):
         # self.groups = groups
         self.groups = in_channels
         self.padding = padding
-        self.relu = nn.ReLU()
         self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
+        self.relu = nn.ReLU(inplace=True)
         self.param = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
 
 
