@@ -178,8 +178,8 @@ class EndStopping2(nn.Conv3d):
         self.padding = padding
         # self.relu = nn.ReLU()
         # self.bn = nn.BatchNorm3d(out_channels, eps=1e-5, momentum=0.1)
-        self.param = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
-
+        self.param1 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
+        self.param2 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
 
     def get_param(self, in_channels, out_channels, kernel_size, groups):
         param = torch.zeros([out_channels, in_channels//groups, kernel_size[0], kernel_size[1], kernel_size[2]], dtype=torch.float, requires_grad=True)
@@ -201,6 +201,7 @@ class EndStopping2(nn.Conv3d):
     def get_weight2(self, param):
         """
         version 2
+        5x5 surround modulation
         center: relu(x) + relu(-x)
         surround: - relu(x) - relu(-x)
         """
@@ -209,9 +210,10 @@ class EndStopping2(nn.Conv3d):
         weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
         return weight
 
-    def get_weight3(self, param):
+    def get_weight2_2(self, param):
         """
-        version 2
+        version 2_2
+        3x3 surround modulation
         center: relu(x) + relu(-x)
         surround: - relu(x) - relu(-x)
         """
@@ -220,11 +222,42 @@ class EndStopping2(nn.Conv3d):
         weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
         return weight
 
+    def get_weight4(self, param1, param2):
+        """
+        version3
+        center: relu(x) + relu(-x), 3x3, dilation=1
+        surround: - relu(x) - relu(-x), 3x3, dilation=2
+        """
+        weight1 = self.get_center(param1)
+        weight2 = self.get_surround(param2)
+        return weight1, weight2
+
+    def get_center(self, param):
+        center = F.relu(param) + F.relu(-param)
+        return center
+
+    def get_surround(self, param):
+
+        # ver1
+        # surround = -F.relu(param) - F.relu(-param)
+
+        # ver2
+        center = F.pad(param[:, :, :, 1:2, 1:2], (1, 1, 1, 1))
+        surround = param - center
+        surround = -F.relu(surround) - F.relu(-surround)
+        return surround
+
     def forward(self, x):
-        weight = self.get_weight3(self.param)
-        x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
-        # x = self.bn(x)
-        # x = self.relu(x)
+        # weight = self.get_weight3(self.param)
+        # x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
+        # # x = self.bn(x)
+        # # x = self.relu(x)
+
+        center = self.get_center(self.param1)
+        surround = self.get_surround(self.param2)
+        x1 = F.conv3d(x, center, stride=self.stride, dilation=1, padding=self.padding, groups=self.groups)
+        x2 = F.conv3d(x, surround, stride=self.stride, dilation=2, padding=[0, 2, 2], groups=self.groups)
+        x = x1 + x2
         return x
 
 
