@@ -16,6 +16,7 @@ def get_trans_func(name):
     """
     trans_funcs = {
         "bottleneck_transform": BottleneckTransform,
+        "bottleneck_transform_v2": BottleneckTransform_v2,
         "basic_transform": BasicTransform,
         "endstop_bottleneck_transform": EndStopBottleneckTransform,
         "endstop_bottleneck_transform3x3": EndStopBottleneckTransform3x3,
