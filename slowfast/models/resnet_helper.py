@@ -9,6 +9,8 @@ import torch.nn.functional as F
 
 from slowfast.models.nonlocal_helper import Nonlocal
 from slowfast.models.bottleneck_helper import *
+from slowfast.models.endstop_helper import *
+
 
 def get_trans_func(name):
     """
@@ -17,18 +19,16 @@ def get_trans_func(name):
     trans_funcs = {
         "bottleneck_transform": BottleneckTransform,
         "bottleneck_transform_v2": BottleneckTransform_v2,
+        "bottleneck_transform_dilation": BottleneckTransformDilation,
         "basic_transform": BasicTransform,
         "endstop_bottleneck_transform": EndStopBottleneckTransform,
         "endstop_bottleneck_transform3x3": EndStopBottleneckTransform3x3,
         "endstop_bottleneck_transform3x3_v2": EndStopBottleneckTransform3x3_v2,
-        "endstop_bottleneck_transform_dilation": EndStopBottleneckTransformDilation,
     }
     assert (
         name in trans_funcs.keys()
     ), "Transformation function '{}' not supported".format(name)
     return trans_funcs[name]
-
-
 
 class ResBlock(nn.Module):
     """
@@ -146,6 +146,129 @@ class ResBlock(nn.Module):
             x = x + self.branch2(x)
         x = self.relu(x)
         return x
+
+
+class ResBlockEndStop(nn.Module):
+    """
+    Residual block.
+    """
+
+    def __init__(
+        self,
+        dim_in,
+        dim_out,
+        temp_kernel_size,
+        stride,
+        trans_func,
+        endstop_func_name,
+        dim_inner,
+        num_groups=1,
+        stride_1x1=False,
+        inplace_relu=True,
+        eps=1e-5,
+        bn_mmt=0.1,
+        dilation=1,
+        norm_module=nn.BatchNorm3d,
+    ):
+        """
+        ResBlock class constructs redisual blocks. More details can be found in:
+            Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun.
+            "Deep residual learning for image recognition."
+            https://arxiv.org/abs/1512.03385
+        Args:
+            dim_in (int): the channel dimensions of the input.
+            dim_out (int): the channel dimension of the output.
+            temp_kernel_size (int): the temporal kernel sizes of the middle
+                convolution in the bottleneck.
+            stride (int): the stride of the bottleneck.
+            trans_func (string): transform function to be used to construct the
+                bottleneck.
+            dim_inner (int): the inner dimension of the block.
+            num_groups (int): number of groups for the convolution. num_groups=1
+                is for standard ResNet like networks, and num_groups>1 is for
+                ResNeXt like networks.
+            stride_1x1 (bool): if True, apply stride to 1x1 conv, otherwise
+                apply stride to the 3x3 conv.
+            inplace_relu (bool): calculate the relu on the original input
+                without allocating new memory.
+            eps (float): epsilon for batch norm.
+            bn_mmt (float): momentum for batch norm. Noted that BN momentum in
+                PyTorch = 1 - BN momentum in Caffe2.
+            dilation (int): size of dilation.
+            norm_module (nn.Module): nn.Module for the normalization layer. The
+                default is nn.BatchNorm3d.
+        """
+        super(ResBlockEndStop, self).__init__()
+        self._inplace_relu = inplace_relu
+        self._eps = eps
+        self._bn_mmt = bn_mmt
+        self._construct(
+            dim_in,
+            dim_out,
+            temp_kernel_size,
+            stride,
+            trans_func,
+            endstop_func_name,
+            dim_inner,
+            num_groups,
+            stride_1x1,
+            inplace_relu,
+            dilation,
+            norm_module,
+        )
+
+    def _construct(
+        self,
+        dim_in,
+        dim_out,
+        temp_kernel_size,
+        stride,
+        trans_func,
+        endstop_func_name,
+        dim_inner,
+        num_groups,
+        stride_1x1,
+        inplace_relu,
+        dilation,
+        norm_module,
+    ):
+        # Use skip connection with projection if dim or res change.
+        if (dim_in != dim_out) or (stride != 1):
+            self.branch1 = nn.Conv3d(
+                dim_in,
+                dim_out,
+                kernel_size=1,
+                stride=[1, stride, stride],
+                padding=0,
+                bias=False,
+                dilation=1,
+            )
+            self.branch1_bn = norm_module(
+                num_features=dim_out, eps=self._eps, momentum=self._bn_mmt
+            )
+        self.branch2 = trans_func(
+            dim_in,
+            dim_out,
+            temp_kernel_size,
+            stride,
+            endstop_func_name,
+            dim_inner,
+            num_groups,
+            stride_1x1=stride_1x1,
+            inplace_relu=inplace_relu,
+            dilation=dilation,
+            norm_module=norm_module,
+        )
+        self.relu = nn.ReLU(self._inplace_relu)
+
+    def forward(self, x):
+        if hasattr(self, "branch1"):
+            x = self.branch1_bn(self.branch1(x)) + self.branch2(x)
+        else:
+            x = x + self.branch2(x)
+        x = self.relu(x)
+        return x
+
 
 
 class ResStage(nn.Module):
@@ -377,11 +500,14 @@ class ResStage2(nn.Module):
             nonlocal_inds,
             nonlocal_group,
             nonlocal_pool,
+            dilation,
             endstop_inds,
             endstop_func_name,
-            dilation,
+            trans_func_slow_name,
+            trans_func_slow_inds,
+            trans_func_fast_name,
+            trans_func_fast_inds,
             instantiation="softmax",
-            trans_func_name="bottleneck_transform",
             stride_1x1=False,
             inplace_relu=True,
             norm_module=nn.BatchNorm3d,
@@ -457,6 +583,8 @@ class ResStage2(nn.Module):
                         len(nonlocal_inds),
                         len(nonlocal_group),
                         len(endstop_inds),
+                        len(trans_func_slow_inds),
+                        len(trans_func_fast_inds),
                     }
                 )
                 == 1
@@ -468,7 +596,6 @@ class ResStage2(nn.Module):
             stride,
             dim_inner,
             num_groups,
-            trans_func_name,
             stride_1x1,
             inplace_relu,
             nonlocal_inds,
@@ -476,6 +603,10 @@ class ResStage2(nn.Module):
             instantiation,
             endstop_inds,
             endstop_func_name,
+            trans_func_slow_name,
+            trans_func_slow_inds,
+            trans_func_fast_name,
+            trans_func_fast_inds,
             dilation,
             norm_module,
         )
@@ -487,14 +618,17 @@ class ResStage2(nn.Module):
             stride,
             dim_inner,
             num_groups,
-            trans_func_name,
             stride_1x1,
             inplace_relu,
             nonlocal_inds,
             nonlocal_pool,
             instantiation,
             endstop_inds,
-            endstop_func_name ,
+            endstop_func_name,
+            trans_func_slow_name,
+            trans_func_slow_inds,
+            trans_func_fast_name,
+            trans_func_fast_inds,
             dilation,
             norm_module,
     ):
@@ -502,14 +636,25 @@ class ResStage2(nn.Module):
             for i in range(self.num_blocks[pathway]):
                 # Retrieve the transformation function.
                 # Construct the block.
-                # Only Last block
-                # if (trans_func_name == "endstop_bottleneck_transform3x3") and pathway == 1 and \
-                #         i == self.num_blocks[pathway] - 1:
-                # Every Block
-                # if (trans_func_name == "endstop_bottleneck_transform_dilation") and pathway == 1:
-                # Selected Block
-                if (trans_func_name == "endstop_bottleneck_transform_dilation") and (i in endstop_inds[pathway]):
-                    trans_func = get_trans_func(trans_func_name)
+                if i in trans_func_fast_inds[pathway]:
+                    trans_func = get_trans_func(trans_func_fast_name)
+                    res_block = ResBlockEndStop(
+                        dim_in[pathway] if i == 0 else dim_out[pathway],
+                        dim_out[pathway],
+                        self.temp_kernel_sizes[pathway][i],
+                        stride[pathway] if i == 0 else 1,
+                        trans_func,
+                        endstop_func_name,
+                        dim_inner[pathway],
+                        num_groups[pathway],
+                        stride_1x1=stride_1x1,
+                        inplace_relu=inplace_relu,
+                        dilation=dilation[pathway],
+                        norm_module=norm_module,
+                    )
+                    self.add_module("pathway{}_res_endstop{}".format(pathway, i), res_block)
+                elif i in trans_func_slow_inds[pathway]:
+                    trans_func = get_trans_func(trans_func_slow_name)
                     res_block = ResBlock(
                         dim_in[pathway] if i == 0 else dim_out[pathway],
                         dim_out[pathway],
@@ -523,7 +668,7 @@ class ResStage2(nn.Module):
                         dilation=dilation[pathway],
                         norm_module=norm_module,
                     )
-                    self.add_module("pathway{}_res_endstop{}".format(pathway, i), res_block)
+                    self.add_module("pathway{}_res{}".format(pathway, i), res_block)
                 else:
                     trans_func = get_trans_func("bottleneck_transform")
                     res_block = ResBlock(
@@ -541,10 +686,8 @@ class ResStage2(nn.Module):
                     )
                     self.add_module("pathway{}_res{}".format(pathway, i), res_block)
 
-                # # if pathway == 1 and i == self.num_blocks[pathway]-1:
                 # if i in endstop_inds[pathway]:
-                #     EndStop = get_endstop_function(endstop_func_name, dim_out[pathway], dim_out[pathway])
-                #     self.add_module("pathway{}_res{}_EndStop".format(pathway, i), EndStop)
+                #     Endstopping()
 
                 if i in nonlocal_inds[pathway]:
                     nln = Nonlocal(

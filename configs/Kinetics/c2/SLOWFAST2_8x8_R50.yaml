@@ -24,7 +24,14 @@ RESNET:
   WIDTH_PER_GROUP: 64
   NUM_GROUPS: 1
   DEPTH: 50
-  TRANS_FUNC: bottleneck_transform
+  TRANS_FUNC:
+    DEFAULT: bottleneck_transform
+    SLOW:
+      TYPE: bottleneck_transform_dilation
+      LOCATION: [[[0, 1, 2], []], [[0, 1, 2, 3], []], [[0, 1, 2, 3, 4, 5], []], [[0, 1, 2], []]]
+    FAST:
+      TYPE: endstop_bottleneck_transform
+      LOCATION: [[[], [0, 1, 2]], [[], [0, 1, 2, 3]], [[], [0, 1, 2, 3, 4, 5]], [[], [0, 1, 2]]]
   STRIDE_1X1: False
   NUM_BLOCK_TEMP_KERNEL: [[3, 3], [4, 4], [6, 6], [3, 3]]
   SPATIAL_STRIDES: [[1, 1], [2, 2], [2, 2], [2, 2]]

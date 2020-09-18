@@ -106,7 +106,7 @@ _C.TEST.SAVE_RESULTS_PATH = ""
 _C.RESNET = CfgNode()
 
 # Transformation function.
-_C.RESNET.TRANS_FUNC = "bottleneck_transform"
+# _C.RESNET.TRANS_FUNC = "bottleneck_transform"
 
 # Number of groups. 1 for ResNet, and larger than 1 for ResNeXt).
 _C.RESNET.NUM_GROUPS = 1

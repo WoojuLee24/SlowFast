@@ -11,5 +11,16 @@ def add_custom_config(_C):
     # Index of each stage and block to add endstopping layers.
     _C.ENDSTOP = CfgNode()
     _C.ENDSTOP.LOCATION = [[[]], [[]], [[]], [[]]]
-    _C.ENDSTOP.TYPE = "EndStopping1"
+    _C.ENDSTOP.TYPE = "EndStopping"
+    # Transfer function
+    _C.RESNET.TRANS_FUNC = CfgNode()
+    _C.RESNET.TRANS_FUNC.DEFAULT = "bottleneck_transform"
+    _C.RESNET.TRANS_FUNC.SLOW = CfgNode()
+    _C.RESNET.TRANS_FUNC.SLOW.TYPE = "bottleneck_transform"
+    _C.RESNET.TRANS_FUNC.SLOW.LOCATION = [[[], []], [[], []], [[], []], [[], []]]
+    _C.RESNET.TRANS_FUNC.FAST = CfgNode()
+    _C.RESNET.TRANS_FUNC.FAST.TYPE = "endstop_bottleneck_transform"
+    _C.RESNET.TRANS_FUNC.FAST.LOCATION = [[[], []], [[], []], [[], []], [[], []]]
+
+
     pass
