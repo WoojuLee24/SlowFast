@@ -24,7 +24,7 @@ class EndStopping(nn.Conv3d):
     Using relu function to learn center-surround suppression
     """
 
-    def __init__(self, in_channels, out_channels, kernel_size=(1, 5, 5), stride=1, padding=(0, 2, 2), dilation=1, bias=True, groups=1):
+    def __init__(self, in_channels, out_channels, kernel_size=(1, 3, 3), stride=1, padding=(0, 1, 1), dilation=1, bias=True, groups=1):
         super().__init__(in_channels, out_channels, kernel_size, stride=stride, padding=padding, dilation=dilation, bias=bias)
 
         self.in_channels = in_channels
@@ -61,6 +61,7 @@ class EndStopping(nn.Conv3d):
         """
         center = F.pad(param[:, :, :, 1:2, 1:2], (1, 1, 1, 1))
         surround = param - center
+        surround /= 8
         weight = F.relu(center) + F.relu(-center) - F.relu(surround) - F.relu(-surround)
         return weight
 
@@ -69,7 +70,7 @@ class EndStopping(nn.Conv3d):
         return center
 
     def forward(self, x):
-        weight = self.get_weight_5x5(self.param)
+        weight = self.get_weight_3x3(self.param)
         x = F.conv3d(x, weight, stride=self.stride, padding=self.padding, groups=self.groups)
         # x = self.bn(x)
         # x = self.relu(x)

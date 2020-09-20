@@ -739,10 +739,10 @@ class EndStopBottleneckTransform3x3(nn.Module):
                                       groups=num_groups
                                       )
 
-        # self.b_bn = norm_module(
-        #     num_features=dim_inner, eps=self._eps, momentum=self._bn_mmt
-        # )
-        # self.b_relu = nn.ReLU(inplace=self._inplace_relu)
+        self.b_bn = norm_module(
+            num_features=dim_inner, eps=self._eps, momentum=self._bn_mmt
+        )
+        self.b_relu = nn.ReLU(inplace=self._inplace_relu)
 
         # 1x1x1, BN.
         self.c = nn.Conv3d(
