@@ -562,15 +562,7 @@ class ResNet(nn.Module):
             self.head = head_helper.ResNetBasicHead(
                 dim_in=[width_per_group * 32],
                 num_classes=cfg.MODEL.NUM_CLASSES,
-                pool_size=[None, None]
-                if cfg.MULTIGRID.SHORT_CYCLE
-                else [
-                    [
-                        cfg.DATA.NUM_FRAMES // pool_size[0][0],
-                        cfg.DATA.CROP_SIZE // 32 // pool_size[0][1],
-                        cfg.DATA.CROP_SIZE // 32 // pool_size[0][2],
-                    ]
-                ],  # None for AdaptiveAvgPool3d((1, 1, 1))
+                pool_size=[None],
                 dropout_rate=cfg.MODEL.DROPOUT_RATE,
                 act_func=cfg.MODEL.HEAD_ACT,
             )
