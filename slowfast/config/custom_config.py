@@ -21,6 +21,6 @@ def add_custom_config(_C):
     _C.RESNET.TRANS_FUNC.FAST = CfgNode()
     _C.RESNET.TRANS_FUNC.FAST.TYPE = "endstop_bottleneck_transform"
     _C.RESNET.TRANS_FUNC.FAST.LOCATION = [[[], []], [[], []], [[], []], [[], []]]
-
+    _C.TRAIN.FINETUNE = False
 
     pass
