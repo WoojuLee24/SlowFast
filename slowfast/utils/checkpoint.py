@@ -280,7 +280,6 @@ def load_checkpoint(
             ms.load_state_dict(inflated_model_dict, strict=False)
         elif finetune:
             ms_dic = ms.state_dict()
-            c = checkpoint["model_state"]
             del checkpoint["model_state"]['head.projection.weight']
             del checkpoint["model_state"]['head.projection.bias']
             for name, param in checkpoint["model_state"].items():
