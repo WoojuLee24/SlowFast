@@ -182,6 +182,7 @@ def load_checkpoint(
     optimizer=None,
     inflation=False,
     convert_from_caffe2=False,
+    finetune=False,
 ):
     """
     Load the checkpoint from the given file. If inflation is True, inflate the
@@ -203,6 +204,7 @@ def load_checkpoint(
     ), "Checkpoint '{}' not found".format(path_to_checkpoint)
     # Account for the DDP wrapper in the multi-gpu setting.
     ms = model.module if data_parallel else model
+
     if convert_from_caffe2:
         with PathManager.open(path_to_checkpoint, "rb") as f:
             caffe2_checkpoint = pickle.load(f, encoding="latin1")
@@ -269,12 +271,24 @@ def load_checkpoint(
         checkpoint["model_state"] = normal_to_sub_bn(
             checkpoint["model_state"], model_state_dict_3d
         )
+
         if inflation:
             # Try to inflate the model.
             inflated_model_dict = inflate_weight(
                 checkpoint["model_state"], model_state_dict_3d
             )
             ms.load_state_dict(inflated_model_dict, strict=False)
+        elif finetune:
+            ms_dic = ms.state_dict()
+            c = checkpoint["model_state"]
+            del checkpoint["model_state"]['head.projection.weight']
+            del checkpoint["model_state"]['head.projection.bias']
+            for name, param in checkpoint["model_state"].items():
+                if name not in ms.state_dict():
+                    continue
+                if isinstance(param, torch.nn.Parameter):
+                    param = param.data
+                ms_dic[name].copy_(param)
         else:
             ms.load_state_dict(checkpoint["model_state"])
             # Load the optimizer state (commonly not done when fine-tuning)
@@ -431,7 +445,20 @@ def load_train_checkpoint(cfg, model, optimizer):
     """
     Loading checkpoint logic for training.
     """
-    if cfg.TRAIN.AUTO_RESUME and has_checkpoint(cfg.OUTPUT_DIR):
+    if cfg.TRAIN.FINETUNE == True:
+        logger.info("Load from given checkpoint file. And perform fine-tuning")
+        start_epoch = 0
+        _ = load_checkpoint(
+            cfg.TRAIN.CHECKPOINT_FILE_PATH,
+            model,
+            cfg.NUM_GPUS > 1,
+            optimizer,
+            inflation=cfg.TRAIN.CHECKPOINT_INFLATE,
+            convert_from_caffe2=cfg.TRAIN.CHECKPOINT_TYPE == "caffe2",
+            finetune=cfg.TRAIN.FINETUNE,
+        )
+
+    elif cfg.TRAIN.AUTO_RESUME and has_checkpoint(cfg.OUTPUT_DIR):
         last_checkpoint = get_last_checkpoint(cfg.OUTPUT_DIR)
         logger.info("Load from last checkpoint, {}.".format(last_checkpoint))
         checkpoint_epoch = load_checkpoint(

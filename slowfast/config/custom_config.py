@@ -12,4 +12,5 @@ def add_custom_config(_C):
     _C.ENDSTOP = CfgNode()
     _C.ENDSTOP.LOCATION = [[[]], [[]], [[]], [[]]]
     _C.ENDSTOP.TYPE = "EndStopping1"
+    _C.TRAIN.FINETUNE = False
     pass
