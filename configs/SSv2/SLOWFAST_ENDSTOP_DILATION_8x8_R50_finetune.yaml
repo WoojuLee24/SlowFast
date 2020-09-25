@@ -44,7 +44,7 @@ BN:
   USE_PRECISE_STATS: True
   NUM_BATCHES_PRECISE: 200
   NORM_TYPE: sync_batchnorm
-  NUM_SYNC_DEVICES: 4
+  NUM_SYNC_DEVICES: 1
 SOLVER:
   BASE_LR: 0.03
   LR_POLICY: steps_with_relative_lrs
