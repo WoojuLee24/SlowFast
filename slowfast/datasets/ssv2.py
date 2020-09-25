@@ -107,7 +107,7 @@ class Ssv2(torch.utils.data.Dataset):
 
         path_to_file = os.path.join(
             self.cfg.DATA.PATH_TO_DATA_DIR,
-            "{}.csv".format("train" if self.mode == "train" else "val"),
+            "{}.txt".format("train" if self.mode == "train" else "val"),
         )
         assert PathManager.exists(path_to_file), "{} dir not found".format(
             path_to_file
