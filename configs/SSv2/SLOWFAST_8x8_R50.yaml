@@ -28,7 +28,7 @@ RESNET:
   WIDTH_PER_GROUP: 64
   NUM_GROUPS: 1
   DEPTH: 50
-  TRANS_FUNC: endstop_bottleneck_transform_dilation
+  TRANS_FUNC: bottleneck_transform
   STRIDE_1X1: False
   NUM_BLOCK_TEMP_KERNEL: [[3, 3], [4, 4], [6, 6], [3, 3]]
   SPATIAL_STRIDES: [[1, 1], [2, 2], [2, 2], [2, 2]]
@@ -38,8 +38,8 @@ NONLOCAL:
   GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
   INSTANTIATION: dot_product
 ENDSTOP:
-  LOCATION: [[[], [0, 1, 2]], [[], [0, 1, 2, 3]], [[], [0, 1, 2, 3, 4, 5]], [[], [0, 1, 2]]]
-  TYPE: "EndStopping2"
+  LOCATION: [[[], []], [[], []], [[], []], [[], []]]
+  TYPE: ""
 BN:
   USE_PRECISE_STATS: True
   NUM_BATCHES_PRECISE: 200
