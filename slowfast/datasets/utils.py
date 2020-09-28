@@ -226,6 +226,7 @@ def load_image_lists(frame_list_file, prefix="", return_list=False):
     with PathManager.open(frame_list_file, "r") as f:
         assert f.readline().startswith("original_vido_id")
         for line in f:
+            # print(line)
             row = line.split()
             # original_vido_id video_id frame_id path labels
             assert len(row) == 5
