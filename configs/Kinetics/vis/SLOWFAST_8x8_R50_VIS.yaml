@@ -55,7 +55,7 @@ MODEL:
 TEST:
   ENABLE: True
   DATASET: kinetics
-  BATCH_SIZE: 64
+  BATCH_SIZE: 4
 DATA_LOADER:
   NUM_WORKERS: 8
   PIN_MEMORY: True
@@ -70,7 +70,7 @@ TENSORBOARD:
     MODEL_WEIGHTS: True
     ACTIVATIONS: True
     INPUT_VIDEO: True
-    LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway0_res1/branch2/b]
+    LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway1_res0/branch2/b]
     GRAD_CAM:
       ENABLE: True
-      LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway0_res1/branch2/b]
+      LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway1_res0/branch2/b]
