@@ -1,5 +1,5 @@
 TRAIN:
-  ENABLE: True
+  ENABLE: False
   DATASET: kinetics
   BATCH_SIZE: 1
   EVAL_PERIOD: 10
@@ -62,8 +62,19 @@ TEST:
 DATA_LOADER:
   NUM_WORKERS: 4
   PIN_MEMORY: True
-NUM_GPUS: 2
+NUM_GPUS: 1
 # GPU_DEVICES: "0"
 NUM_SHARDS: 1
 RNG_SEED: 0
 OUTPUT_DIR: .
+TENSORBOARD:
+  ENABLE: True
+  MODEL_VIS:
+    ENABLE: True
+    MODEL_WEIGHTS: True
+    ACTIVATIONS: True
+    INPUT_VIDEO: True
+    LAYER_LIST: [s3/pathway0_res0/branch2/b, s3/pathway1_res_endstop0/branch2/b]
+    GRAD_CAM:
+      ENABLE: True
+      LAYER_LIST: [s3/pathway0_res0/branch2/b, s3/pathway1_res_endstop0/branch2/b]
