@@ -181,6 +181,7 @@ class EndStopping2(nn.Conv3d):
         self.param1 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
         self.param2 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
 
+
     def get_param(self, in_channels, out_channels, kernel_size, groups):
         param = torch.zeros([out_channels, in_channels//groups, kernel_size[0], kernel_size[1], kernel_size[2]], dtype=torch.float, requires_grad=True)
         param = param.cuda()
