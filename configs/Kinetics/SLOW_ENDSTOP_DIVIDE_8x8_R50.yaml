@@ -14,7 +14,7 @@ DATA:
   TRAIN_JITTER_SCALES: [128, 160]
   TRAIN_CROP_SIZE: 112
   TEST_CROP_SIZE: 128
-  INPUT_CHANNEL_NUM: [3, 3]
+  INPUT_CHANNEL_NUM: [3]
 SLOWFAST:
   ALPHA: 4
   BETA_INV: 8
@@ -29,17 +29,17 @@ RESNET:
     DEFAULT: bottleneck_transform
     SLOW:
       TYPE: bottleneck_transform
-      LOCATION: [[[0, 1, 2], []], [[0, 1, 2, 3], []], [[0, 1, 2, 3, 4, 5], []], [[0, 1, 2], []]]
+      LOCATION: [[[0, 1, 2]], [[0, 1, 2, 3]], [[0, 1, 2, 3, 4, 5]], [[0, 1, 2]]]
     FAST:
       TYPE: endstop_bottleneck_transform
-      LOCATION: [[[], [0, 2]], [[], [1, 3]], [[], [0, 2, 4]], [[], [0, 2]]]
+      LOCATION: [[[], [[]], [[]], [[]]]
   STRIDE_1X1: False
-  NUM_BLOCK_TEMP_KERNEL: [[3, 3], [4, 4], [6, 6], [3, 3]]
-  SPATIAL_STRIDES: [[1, 1], [2, 2], [2, 2], [2, 2]]
-  SPATIAL_DILATIONS: [[1, 1], [1, 1], [1, 1], [1, 1]]
+  NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
+  SPATIAL_STRIDES: [[1], [2], [2], [2]]
+  SPATIAL_DILATIONS: [[1], [1], [1], [1]]
 NONLOCAL:
   LOCATION: [[[], []], [[], []], [[], []], [[], []]]
-  GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
+  GROUP: [[1], [1], [1], [1]]
   INSTANTIATION: dot_product
 ENDSTOP:
   LOCATION: [[[], [0, 1, 2]], [[], [0, 1, 2, 3]], [[], [0, 1, 2, 3, 4, 5]], [[], [0, 1, 2]]]
@@ -69,7 +69,7 @@ TEST:
 DATA_LOADER:
   NUM_WORKERS: 4
   PIN_MEMORY: True
-NUM_GPUS: 2
+NUM_GPUS: 1
 # GPU_DEVICES: "0"
 NUM_SHARDS: 1
 RNG_SEED: 0
