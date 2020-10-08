@@ -67,7 +67,7 @@ TENSORBOARD:
     MODEL_WEIGHTS: True
     ACTIVATIONS: True
     INPUT_VIDEO: True
-    LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway1_res0/branch2/b]
+    LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway0_res0/branch2/e]
     GRAD_CAM:
       ENABLE: True
-      LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway1_res0/branch2/b]
+      LAYER_LIST: [s2/pathway0_res0/branch2/b, s2/pathway0_res0/branch2/e]
