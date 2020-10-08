@@ -161,6 +161,7 @@ class GradCAM:
             if localization_map.device != torch.device("cpu"):
                 localization_map = localization_map.cpu()
             heatmap = self.colormap(localization_map)
+            print(heatmap)
             heatmap = heatmap[:, :, :, :, :3]
             # Permute input from (B, C, T, H, W) to (B, T, H, W, C)
             curr_inp = inputs[i].permute(0, 2, 3, 4, 1)
