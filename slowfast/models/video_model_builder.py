@@ -202,6 +202,7 @@ class SlowFast(nn.Module):
             ],
             norm_module=self.norm_module,
         )
+
         self.s1_fuse = FuseFastToSlow(
             width_per_group // cfg.SLOWFAST.BETA_INV,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
@@ -209,6 +210,17 @@ class SlowFast(nn.Module):
             cfg.SLOWFAST.ALPHA,
             norm_module=self.norm_module,
         )
+
+        if cfg.V1.ENABLE == True:
+            self.s1_v1 = stem_helper.EndStoppingStem(
+                dim_in=width_per_group // cfg.SLOWFAST.BETA_INV,
+                dim_out=width_per_group // cfg.SLOWFAST.BETA_INV,
+                kernel=[1, 3, 3],
+                stride=[1, 1, 1],
+                padding=[0, 1, 1],
+                endstop_func_name=cfg.V1.ENDSTOP,
+                norm_module=self.norm_module,
+            )
 
         self.s2 = resnet_helper.ResStage(
             dim_in=[
@@ -388,6 +400,7 @@ class SlowFast(nn.Module):
     def forward(self, x, bboxes=None):
         x = self.s1(x)
         x = self.s1_fuse(x)
+        x[1] = self.s1_v1(x[1])
         x = self.s2(x)
         x = self.s2_fuse(x)
         for pathway in range(self.num_pathways):

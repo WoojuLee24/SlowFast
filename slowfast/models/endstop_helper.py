@@ -3,14 +3,14 @@ import torch
 import torch.nn.functional as F
 
 
-def get_endstop_function(name, dim_in, dim_out, stride=[1, 1, 1], dilation=[1, 1, 1], groups=1):
+def get_endstop_function(name):
     """
     Retrives the Endstopping layer by name
     """
     endstop_funcs = {
-        "EndStoppingDivide": EndStoppingDivide(dim_in, dim_out, stride=stride, dilation=dilation, groups=groups),
-        "EndStoppingDilation": EndStoppingDilation(dim_in, dim_out, stride=stride, dilation=dilation, groups=groups),
-        "CompareDog": CompareDoG(dim_in, dim_out, stride=stride, dilation=dilation, groups=groups),
+        "EndStoppingDivide": EndStoppingDivide,
+        "EndStoppingDilation": EndStoppingDilation,
+        "CompareDog": CompareDoG,
     }
     assert (
         name in endstop_funcs.keys()
