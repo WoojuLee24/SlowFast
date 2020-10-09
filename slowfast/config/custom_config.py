@@ -5,5 +5,8 @@
 
 
 def add_custom_config(_C):
-    # Add your own customized configs.
+    #
+    _C.SLOWFAST.FUSION_TRANS_FUNC = ""
+    _C.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO = 4
+    _C.SLOWFAST.SLOW_FUSION_KERNEL_SZ = 1
     pass

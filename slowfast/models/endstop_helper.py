@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 
 
-def get_endstop_function(name, dim_in, dim_out, stride=[1, 1, 1], dilation=[1, 1, 1], groups=1):
+def get_endstop_function(name):
     """
     Retrives the Endstopping layer by name
     """
