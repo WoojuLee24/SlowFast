@@ -209,20 +209,20 @@ class FuseFastAndSlow(nn.Module):
         super(FuseFastAndSlow, self).__init__()
         trans_func = endstop_helper.get_endstop_function(trans_func_name)
         self.alpha = alpha
-        self.f_trans_func = trans_func(
-            fast_dim_in,
-            fast_dim_in,
-            kernel_size=[1, 3, 3],
-            stride=[1, 1, 1],
-            padding=[0, 1, 1],
-            bias=False,
-        )
-        self.f_trans_bn = norm_module(
-            num_features=fast_dim_in,
-            eps=eps,
-            momentum=bn_mmt,
-        )
-        self.f_trans_relu = nn.ReLU(inplace_relu)
+        # self.f_trans_func = trans_func(
+        #     fast_dim_in,
+        #     fast_dim_in,
+        #     kernel_size=[1, 3, 3],
+        #     stride=[1, 1, 1],
+        #     padding=[0, 1, 1],
+        #     bias=False,
+        # )
+        # self.f_trans_bn = norm_module(
+        #     num_features=fast_dim_in,
+        #     eps=eps,
+        #     momentum=bn_mmt,
+        # )
+        # self.f_trans_relu = nn.ReLU(inplace_relu)
         self.s_trans_func = trans_func(
             slow_dim_in,
             slow_dim_in,
@@ -260,7 +260,7 @@ class FuseFastAndSlow(nn.Module):
             bias=False,
         )
         self.f_bn = norm_module(
-            num_features=slow_dim_in * slow_fusion_conv_channel_ratio,
+            num_features=slow_dim_in // slow_fusion_conv_channel_ratio,
             eps=eps,
             momentum=bn_mmt,
         )
@@ -270,9 +270,9 @@ class FuseFastAndSlow(nn.Module):
     def forward(self, x):
         x_s = x[0]
         x_f = x[1]
-        x_f = self.f_trans_func(x_f)
-        x_f = self.f_trans_bn(x_f)
-        x_f = self.f_trans_relu(x_f)
+        # x_f = self.f_trans_func(x_f)
+        # x_f = self.f_trans_bn(x_f)
+        # x_f = self.f_trans_relu(x_f)
         fuse_s = self.conv_f2s(x_f)
         fuse_s = self.s_bn(fuse_s)
         fuse_s = self.s_relu(fuse_s)
@@ -283,7 +283,7 @@ class FuseFastAndSlow(nn.Module):
         fuse_f = self.conv_s2f(x_s)
         fuse_f = self.f_bn(fuse_f)
         fuse_f = self.f_relu(fuse_f)
-        fuse_f = fuse_f.repeat(1, 1, self.alpha, 1, 1)
+        fuse_f = fuse_f.repeat_interleave(self.alpha, dim=2)
 
         x_s_fuse = torch.cat([x_s, fuse_s], 1)
         x_f_fuse = torch.cat([x_f, fuse_f], 1)
@@ -637,7 +637,7 @@ class SlowFast2(nn.Module):
         self.s2 = resnet_helper.ResStage(
             dim_in=[
                 width_per_group + width_per_group // out_dim_ratio,
-                width_per_group // cfg.SLOWFAST.BETA_INV,
+                width_per_group // cfg.SLOWFAST.BETA_INV + width_per_group // cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             ],
             dim_out=[
                 width_per_group * 4,
@@ -680,7 +680,7 @@ class SlowFast2(nn.Module):
         self.s3 = resnet_helper.ResStage(
             dim_in=[
                 width_per_group * 4 + width_per_group * 4 // out_dim_ratio,
-                width_per_group * 4 // cfg.SLOWFAST.BETA_INV,
+                width_per_group * 4 // cfg.SLOWFAST.BETA_INV + width_per_group * 4 // cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             ],
             dim_out=[
                 width_per_group * 8,
@@ -714,7 +714,7 @@ class SlowFast2(nn.Module):
         self.s4 = resnet_helper.ResStage(
             dim_in=[
                 width_per_group * 8 + width_per_group * 8 // out_dim_ratio,
-                width_per_group * 8 // cfg.SLOWFAST.BETA_INV,
+                width_per_group * 8 // cfg.SLOWFAST.BETA_INV + width_per_group * 8 // cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             ],
             dim_out=[
                 width_per_group * 16,
@@ -748,7 +748,7 @@ class SlowFast2(nn.Module):
         self.s5 = resnet_helper.ResStage(
             dim_in=[
                 width_per_group * 16 + width_per_group * 16 // out_dim_ratio,
-                width_per_group * 16 // cfg.SLOWFAST.BETA_INV,
+                width_per_group * 16 // cfg.SLOWFAST.BETA_INV + width_per_group * 16 // cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             ],
             dim_out=[
                 width_per_group * 32,
