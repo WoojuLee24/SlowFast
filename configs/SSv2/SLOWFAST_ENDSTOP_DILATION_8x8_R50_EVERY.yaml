@@ -38,7 +38,7 @@ NONLOCAL:
   GROUP: [[1, 1], [1, 1], [1, 1], [1, 1]]
   INSTANTIATION: dot_product
 ENDSTOP:
-  LOCATION: [[[], [0, 1, 2]], [[], [0, 1, 2, 3]], [[], [0, 1, 2, 3, 4, 5]], [[], [0, 1, 2]]]
+  LOCATION: [[[], [2]], [[], [3]], [[], [5]], [[], [2]]]
   TYPE: "EndStopping2"
 BN:
   USE_PRECISE_STATS: True
@@ -59,7 +59,7 @@ SOLVER:
 MODEL:
   NUM_CLASSES: 174
   ARCH: slowfast2
-  MODEL_NAME: SlowFast2
+  MODEL_NAME: SlowFast
   LOSS_FUNC: cross_entropy
   DROPOUT_RATE: 0.5
 TEST:

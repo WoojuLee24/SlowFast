@@ -247,7 +247,7 @@ class EndStopping2(nn.Conv3d):
         surround = param - center
         surround = -F.relu(surround) - F.relu(-surround)
         # ver3
-        surround /= 2
+        # surround /= 2
         return surround
 
     def forward(self, x):
