@@ -246,6 +246,7 @@ class EndStopping2(nn.Conv3d):
         center = F.pad(param[:, :, :, 1:2, 1:2], (1, 1, 1, 1))
         surround = param - center
         surround = -F.relu(surround) - F.relu(-surround)
+        # ver3
         surround /= 2
         return surround
 
