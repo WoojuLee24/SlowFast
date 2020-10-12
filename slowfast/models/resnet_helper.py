@@ -21,8 +21,10 @@ def get_trans_func(name):
         "bottleneck_transform": BottleneckTransform,
         "basic_transform": BasicTransform,
         "x3d_transform": X3DTransform,
-        "endstop_divide_bottleneck_transform": EndStopDivideBottleneckTransform,
         "endstop_dilation_bottleneck_transform": EndStopDilationBottleneckTransform,
+        "endstop_divide_bottleneck_transform": EndStopDivideBottleneckTransform,
+        "endstop_dilation_conv_bottleneck_transform": EndStopDilationConvBottleneckTransform,
+        "endstop_divide_conv_bottleneck_transform": EndStopDivideConvBottleneckTransform,
     }
     assert (
         name in trans_funcs.keys()

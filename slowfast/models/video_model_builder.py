@@ -179,6 +179,7 @@ class FuseFastAndSlow(nn.Module):
         self,
         slow_dim_in,
         fast_dim_in,
+        dim_inner,
         slow_fusion_conv_channel_ratio,
         fast_fusion_conv_channel_ratio,
         slow_fusion_kernel,
@@ -207,36 +208,29 @@ class FuseFastAndSlow(nn.Module):
                 default is nn.BatchNorm3d.
         """
         super(FuseFastAndSlow, self).__init__()
-        trans_func = endstop_helper.get_endstop_function(trans_func_name)
         self.alpha = alpha
-        # self.f_trans_func = trans_func(
-        #     fast_dim_in,
-        #     fast_dim_in,
-        #     kernel_size=[1, 3, 3],
-        #     stride=[1, 1, 1],
-        #     padding=[0, 1, 1],
-        #     bias=False,
-        # )
-        # self.f_trans_bn = norm_module(
-        #     num_features=fast_dim_in,
-        #     eps=eps,
-        #     momentum=bn_mmt,
-        # )
-        # self.f_trans_relu = nn.ReLU(inplace_relu)
-        self.s_trans_func = trans_func(
+        trans_func = resnet_helper.get_trans_func(trans_func_name)
+
+        # Construct the block.
+        res_block = resnet_helper.ResBlock(
             slow_dim_in,
             slow_dim_in,
-            kernel_size=[1, 3, 3],
-            stride=[1, 1, 1],
-            padding=[0, 1, 1],
-            bias=False,
+            1,
+            1,
+            trans_func,
+            dim_inner,
+            num_groups=1,
+            stride_1x1=False,
+            inplace_relu=True,
+            eps=1e-5,
+            bn_mmt=0.1,
+            dilation=1,
+            norm_module=nn.BatchNorm3d,
+            block_idx=0,
+            drop_connect_rate=0.0,
         )
-        self.s_trans_bn = norm_module(
-            num_features=slow_dim_in,
-            eps=eps,
-            momentum=bn_mmt,
-        )
-        self.s_trans_relu = nn.ReLU(inplace_relu)
+        self.add_module("pathway{}_res{}".format(0, 0), res_block)
+
         self.conv_f2s = nn.Conv3d(
             fast_dim_in,
             fast_dim_in * fast_fusion_conv_channel_ratio,
@@ -270,16 +264,13 @@ class FuseFastAndSlow(nn.Module):
     def forward(self, x):
         x_s = x[0]
         x_f = x[1]
-        # x_f = self.f_trans_func(x_f)
-        # x_f = self.f_trans_bn(x_f)
-        # x_f = self.f_trans_relu(x_f)
+
         fuse_s = self.conv_f2s(x_f)
         fuse_s = self.s_bn(fuse_s)
         fuse_s = self.s_relu(fuse_s)
 
-        x_s = self.s_trans_func(x_s)
-        x_s = self.s_trans_bn(x_s)
-        x_s = self.s_trans_relu(x_s)
+        m = getattr(self, "pathway{}_res{}".format(0, 0))
+        x_s = m(x_s)
         fuse_f = self.conv_s2f(x_s)
         fuse_f = self.f_bn(fuse_f)
         fuse_f = self.f_relu(fuse_f)
@@ -625,6 +616,7 @@ class SlowFast2(nn.Module):
         self.s1_fuse = FuseFastAndSlow(
             width_per_group,
             width_per_group // cfg.SLOWFAST.BETA_INV,
+            dim_inner,
             cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.SLOW_FUSION_KERNEL_SZ,
@@ -660,6 +652,7 @@ class SlowFast2(nn.Module):
         self.s2_fuse = FuseFastAndSlow(
             4 * width_per_group,
             4 * width_per_group // cfg.SLOWFAST.BETA_INV,
+            dim_inner,
             cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.SLOW_FUSION_KERNEL_SZ,
@@ -703,6 +696,7 @@ class SlowFast2(nn.Module):
         self.s3_fuse = FuseFastAndSlow(
             8 * width_per_group,
             8 * width_per_group // cfg.SLOWFAST.BETA_INV,
+            dim_inner * 2,
             cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.SLOW_FUSION_KERNEL_SZ,
@@ -737,6 +731,7 @@ class SlowFast2(nn.Module):
         self.s4_fuse = FuseFastAndSlow(
             16 * width_per_group,
             16 * width_per_group // cfg.SLOWFAST.BETA_INV,
+            dim_inner * 4,
             cfg.SLOWFAST.SLOW_FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.FUSION_CONV_CHANNEL_RATIO,
             cfg.SLOWFAST.SLOW_FUSION_KERNEL_SZ,

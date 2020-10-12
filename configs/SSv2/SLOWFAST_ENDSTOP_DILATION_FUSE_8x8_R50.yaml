@@ -22,7 +22,7 @@ SLOWFAST:
   SLOW_FUSION_CONV_CHANNEL_RATIO: 16
   FUSION_KERNEL_SZ: 7
   SLOW_FUSION_KERNEL_SZ: 1
-  FUSION_TRANS_FUNC: "EndStoppingDilation"
+  FUSION_TRANS_FUNC: "endstop_dilation_bottleneck_transform"
 RESNET:
   ZERO_INIT_FINAL_BN: True
   WIDTH_PER_GROUP: 64
@@ -55,8 +55,8 @@ SOLVER:
   OPTIMIZING_METHOD: sgd
 MODEL:
   NUM_CLASSES: 174
-  ARCH: slowfast
-  MODEL_NAME: SlowFast
+  ARCH: slowfast2
+  MODEL_NAME: SlowFast2
   LOSS_FUNC: cross_entropy
   DROPOUT_RATE: 0.5
 TEST:
