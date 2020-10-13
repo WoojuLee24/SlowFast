@@ -508,7 +508,7 @@ class ResStage2(nn.Module):
                 # Every Block
                 # if (trans_func_name == "endstop_bottleneck_transform_dilation") and pathway == 1:
                 # Selected Block
-                if (trans_func_name == "endstop_bottleneck_transform_dilation") and (i in endstop_inds[pathway]):
+                if (trans_func_name != "bottleneck_transform") and (i in endstop_inds[pathway]):
                     trans_func = get_trans_func(trans_func_name)
                     res_block = ResBlock(
                         dim_in[pathway] if i == 0 else dim_out[pathway],
