@@ -25,6 +25,7 @@ def get_trans_func(name):
         "endstop_dilation_bottleneck_transform": EndStopDilationBottleneckTransform,
         "endstop_dilation_conv_bottleneck_transform": EndStopDilationConvBottleneckTransform,
         "endstop_dilation_relu_bottleneck_transform": EndStopDilationReluBottleneckTransform,
+        "endstop_dilation_prelu_bottleneck_transform": EndStopDilationPReLUBottleneckTransform,
     }
     assert (
         name in trans_funcs.keys()
