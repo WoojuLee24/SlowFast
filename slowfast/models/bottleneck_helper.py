@@ -151,7 +151,7 @@ class EndStopDivideBottleneckTransform(nn.Module):
         return x
 
 
-class EndStopDilationBottleneckTransform(nn.Module):
+class EndStopDilationConvBottleneckTransform(nn.Module):
     """
     Bottleneck transformation: Tx1x1, 1x3x3, 1x1x1, where T is the size of
         temporal kernel.
@@ -195,7 +195,7 @@ class EndStopDilationBottleneckTransform(nn.Module):
             norm_module (nn.Module): nn.Module for the normalization layer. The
                 default is nn.BatchNorm3d.
         """
-        super(EndStopDilationBottleneckTransform, self).__init__()
+        super(EndStopDilationConvBottleneckTransform, self).__init__()
         self.temp_kernel_size = temp_kernel_size
         self._inplace_relu = inplace_relu
         self._eps = eps
@@ -254,8 +254,23 @@ class EndStopDilationBottleneckTransform(nn.Module):
         self.b_relu = nn.ReLU(inplace=self._inplace_relu)
 
         # Endstopping: 1x3x3, BN, ReLU
-        self.e = EndStoppingDilation(dim_inner, dim_inner, stride=[1, str3x3, str3x3], dilation=[1, dilation, dilation],
-                                   groups=num_groups)
+        self.be = self.b = nn.Conv3d(
+            dim_inner,
+            dim_inner,
+            [1, 3, 3],
+            stride=[1, str3x3, str3x3],
+            padding=[0, dilation, dilation],
+            groups=num_groups,
+            bias=False,
+            dilation=[1, dilation, dilation],
+        )
+        self.be_bn = norm_module(
+            num_features=dim_inner, eps=self._eps, momentum=self._bn_mmt
+        )
+        self.be_relu = nn.ReLU(inplace=self._inplace_relu)
+
+        self.e = EndStoppingDilation(dim_inner, dim_inner, stride=[1, 1, 1], dilation=[1, dilation, dilation],
+                                   groups=dim_inner)
 
         self.e_bn = norm_module(
             num_features=dim_inner, eps=self._eps, momentum=self._bn_mmt
@@ -284,17 +299,20 @@ class EndStopDilationBottleneckTransform(nn.Module):
         x = self.a_relu(x)
 
         # Branch2e
-        xe = self.e(x)
+        xe = self.be(x)
+        xe = self.be_bn(xe)
+        xe = self.be_relu(xe)
+        xe = self.e(xe)
         xe = self.e_bn(xe)
-        xe = self.e_relu(xe)
 
         # Branch2b.
         x = self.b(x)
         x = self.b_bn(x)
-        x = self.b_relu(x)
+
+        x = self.be_relu(x+xe)
 
         # Branch2c
-        x = self.c(x+xe)
+        x = self.c(x)
         x = self.c_bn(x)
         return x
 
@@ -425,7 +443,7 @@ class EndStopDilationPReLUBottleneckTransform(nn.Module):
         return x
 
 
-class EndStopDilationConvBottleneckTransform(nn.Module):
+class EndStopDilationBottleneckTransform(nn.Module):
     """
     Bottleneck transformation: Tx1x1, 1x3x3, 1x1x1, where T is the size of
         temporal kernel.
@@ -469,7 +487,7 @@ class EndStopDilationConvBottleneckTransform(nn.Module):
             norm_module (nn.Module): nn.Module for the normalization layer. The
                 default is nn.BatchNorm3d.
         """
-        super(EndStopDilationConvBottleneckTransform, self).__init__()
+        super(EndStopDilationBottleneckTransform, self).__init__()
         self.temp_kernel_size = temp_kernel_size
         self._inplace_relu = inplace_relu
         self._eps = eps
