@@ -24,6 +24,7 @@ def get_trans_func(name):
         "endstop_divide_bottleneck_transform": EndStopDivideBottleneckTransform,
         "endstop_dilation_bottleneck_transform": EndStopDilationBottleneckTransform,
         "endstop_dilation_conv_bottleneck_transform": EndStopDilationConvBottleneckTransform,
+        "endstop_dilation_conv2_bottleneck_transform": EndStopDilationConv2BottleneckTransform,
         "endstop_dilation_relu_bottleneck_transform": EndStopDilationReluBottleneckTransform,
         "endstop_dilation_prelu_bottleneck_transform": EndStopDilationPReLUBottleneckTransform,
     }
