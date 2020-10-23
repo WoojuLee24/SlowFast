@@ -11,7 +11,7 @@ def get_stem_func(name):
     Retrieves the stem module by name.
     """
     trans_funcs = {"x3d_stem": X3DStem, "basic_stem": ResNetBasicStem,
-                   "endstop_stem:": EndStoppingStem}
+                   "endstop_dilation_stem": EndStoppingDilationStem}
     assert (
         name in trans_funcs.keys()
     ), "Transformation function '{}' not supported".format(name)
@@ -280,7 +280,8 @@ class X3DStem(nn.Module):
         x = self.relu(x)
         return x
 
-class EndStoppingStem(nn.Module):
+
+class EndStoppingDilationStem(nn.Module):
     """
     Performs end-stopping Convolution, BN, and Relu
     """
@@ -292,7 +293,6 @@ class EndStoppingStem(nn.Module):
         kernel,
         stride,
         padding,
-        endstop_func_name,
         inplace_relu=True,
         eps=1e-5,
         bn_mmt=0.1,
@@ -323,11 +323,10 @@ class EndStoppingStem(nn.Module):
             norm_module (nn.Module): nn.Module for the normalization layer. The
                 default is nn.BatchNorm3d.
         """
-        super(EndStoppingStem, self).__init__()
+        super(EndStoppingDilationStem, self).__init__()
         self.kernel = kernel
         self.stride = stride
         self.padding = padding
-        self.endstop_func_name = endstop_func_name
         self.inplace_relu = inplace_relu
         self.eps = eps
         self.bn_mmt = bn_mmt
@@ -335,13 +334,12 @@ class EndStoppingStem(nn.Module):
         self._construct_stem(dim_in, dim_out, norm_module)
 
     def _construct_stem(self, dim_in, dim_out, norm_module):
-        trans_func = get_endstop_function(self.endstop_func_name)
-        self.conv = trans_func(dim_in,
-                               dim_out,
-                               self.kernel,
-                               self.stride,
-                               self.padding,
-                               bias=False,
+        self.conv = EndStoppingDilation(dim_in,
+                                        dim_out,
+                                        self.kernel,
+                                        self.stride,
+                                        self.padding,
+                                        bias=False,
         )
         self.bn = norm_module(
             num_features=dim_out, eps=self.eps, momentum=self.bn_mmt
@@ -349,7 +347,8 @@ class EndStoppingStem(nn.Module):
         self.relu = nn.ReLU(self.inplace_relu)
 
     def forward(self, x):
-        x = self.conv(x)
-        x = self.bn(x)
-        x = self.relu(x)
+        xe = self.conv(x)
+        xe = self.bn(xe)
+        xe = self.relu(xe)
+        x = torch.cat((x, xe), dim=1)
         return x
