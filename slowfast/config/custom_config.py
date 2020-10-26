@@ -9,5 +9,5 @@ def add_custom_config(_C):
     # Add your own customized configs.
     _C.V1 = CfgNode()
     _C.V1.ENABLE = False
-    _C.V1.ENDSTOP = "endstopping_divide"
+    _C.V1.ENDSTOP = "endstop_dilation_stem"
     pass
