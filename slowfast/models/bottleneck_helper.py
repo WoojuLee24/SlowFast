@@ -697,8 +697,8 @@ class EndStopDilationBottleneckTransform(nn.Module):
         self.a_relu = nn.ReLU(inplace=self._inplace_relu)
 
         # Endstopping: 1x3x3, BN, ReLU
-        self.e = EndStoppingDilationConv(dim_inner, dim_inner, stride=[1, str3x3, str3x3], dilation=[1, dilation, dilation],
-                                   groups=num_groups)
+        self.e = EndStoppingDilation(dim_inner, dim_inner, stride=[1, str3x3, str3x3], dilation=[1, dilation, dilation],
+                                     groups=num_groups)
 
         self.e_bn = norm_module(
             num_features=dim_inner, eps=self._eps, momentum=self._bn_mmt

@@ -96,6 +96,8 @@ class EndStoppingDilation(nn.Conv3d):
         self.padding = padding
         self.param1 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
         self.param2 = self.get_param(self.in_channels, self.out_channels, self.kernel_size, self.groups)
+        self.replication_pad1 = nn.ReplicationPad3d((1, 1, 1, 1, 0, 0))
+        self.replication_pad2 = nn.ReplicationPad3d((2, 2, 2, 2, 0, 0))
 
     def get_param(self, in_channels, out_channels, kernel_size, groups):
         param = torch.zeros([out_channels, in_channels//groups, kernel_size[0], kernel_size[1], kernel_size[2]], dtype=torch.float, requires_grad=True)
@@ -116,8 +118,10 @@ class EndStoppingDilation(nn.Conv3d):
     def forward(self, x):
         center = self.get_center(self.param1)
         surround = self.get_surround(self.param2)
-        x1 = F.conv3d(x, center, stride=self.stride, dilation=1, padding=self.padding, groups=self.groups)
-        x2 = F.conv3d(x, surround, stride=self.stride, dilation=2, padding=(0, 2, 2), groups=self.groups)
+        x1 = self.replication_pad1(x)
+        x2 = self.replication_pad2(x)
+        x1 = F.conv3d(x1, center, stride=self.stride, dilation=1, groups=self.groups)
+        x2 = F.conv3d(x2, surround, stride=self.stride, dilation=2, groups=self.groups)
         x = x1 + x2
         return x
 
