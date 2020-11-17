@@ -17,7 +17,7 @@ RESNET:
   WIDTH_PER_GROUP: 64
   NUM_GROUPS: 1
   DEPTH: 50
-  TRANS_FUNC: endstop_dilation_bottleneck_transform
+  TRANS_FUNC: bottleneck_transform
   STRIDE_1X1: False
   NUM_BLOCK_TEMP_KERNEL: [[3], [4], [6], [3]]
 NONLOCAL:
